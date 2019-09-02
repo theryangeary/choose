@@ -25,7 +25,7 @@ necessary.
 
 ## Usage
 
-`choose [OPTIONS] [FIELDS] file`
+`choose [OPTIONS] <FIELDS> FILE`
 
 ### Options
 
