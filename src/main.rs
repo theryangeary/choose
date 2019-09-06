@@ -7,9 +7,10 @@ use regex::Regex;
 
 type Range = (Option<u32>, Option<u32>);
 
+#[derive(Debug)]
 enum Choice {
-    One(u32),
-    Range
+    Field(u32),
+    FieldRange(Range),
 }
 
 #[derive(Debug, StructOpt)]
