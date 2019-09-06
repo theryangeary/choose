@@ -16,16 +16,12 @@ enum Choice {
 #[derive(Debug, StructOpt)]
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
 struct Opt {
-    /// Capture range of fields
-    #[structopt(parse(try_from_str = parse_choice))]
-    choice: Choice,
-
     /// Specify field separator other than whitespace
     #[structopt(short, long)]
     field_separator: Option<String>,
 
     /// Use inclusive ranges
-    #[structopt(short, long)]
+    #[structopt(short = "n", long)]
     inclusive: bool,
 
     /// Activate debug mode
@@ -33,8 +29,12 @@ struct Opt {
     debug: bool,
 
     /// Input file
-    #[structopt(parse(from_os_str))]
+    #[structopt(short, long, parse(from_os_str))]
     input: Option<PathBuf>,
+
+    /// Fields to print
+    #[structopt(required = true, min_values = 1, parse(try_from_str = parse_choice))]
+    choice: Vec<Choice>,
 }
 
 fn main() {
