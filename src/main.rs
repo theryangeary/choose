@@ -16,8 +16,8 @@ enum Choice {
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
 struct Opt {
     /// Specify field separator other than whitespace
-    #[structopt(short, long, default_value = "")]
-    field_separator: String,
+    #[structopt(short, long)]
+    field_separator: Option<String>,
 
     /// Use inclusive ranges
     #[structopt(short, long)]
