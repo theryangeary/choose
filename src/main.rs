@@ -40,8 +40,8 @@ fn main() {
     let opt = Opt::from_args();
 
     let read = match &opt.input {
-        Some(f) => Box::new(File::open(f).expect("Could not open file")) as Box<Read>,
-        None => Box::new(io::stdin()) as Box<Read>,
+        Some(f) => Box::new(File::open(f).expect("Could not open file")) as Box<dyn Read>,
+        None => Box::new(io::stdin()) as Box<dyn Read>,
     };
 
     let buf = BufReader::new(read);
