@@ -1,9 +1,9 @@
+use regex::Regex;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
-use std::path::PathBuf;
 use std::num::ParseIntError;
+use std::path::PathBuf;
 use structopt::StructOpt;
-use regex::Regex;
 
 type Range = (Option<u32>, Option<u32>);
 
@@ -59,12 +59,10 @@ fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
 
     let cap = match re.captures_iter(src).next() {
         Some(v) => v,
-        None => {
-            match src.parse() {
-                Ok(x) => return Ok(Choice::Field(x)),
-                Err(_) => panic!("failed to parse range argument: {}", src),
-            }
-        }
+        None => match src.parse() {
+            Ok(x) => return Ok(Choice::Field(x)),
+            Err(_) => panic!("failed to parse range argument: {}", src),
+        },
     };
 
     let start = if cap[1].is_empty() {
@@ -85,5 +83,5 @@ fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
         }
     };
 
-    return Ok( Choice::FieldRange( (start, end) ));
+    return Ok(Choice::FieldRange((start, end)));
 }
