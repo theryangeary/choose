@@ -59,7 +59,12 @@ fn parse_range(src: &str) -> Result<Choice, ParseIntError> {
 
     let cap = match re.captures_iter(src).next() {
         Some(v) => v,
-        None => panic!("failed to parse range argument: {}", src),
+        None => {
+            match src.parse() {
+                Ok(x) => return Ok(Choice::Field(x)),
+                Err(_) => panic!("failed to parse range argument: {}", src),
+            }
+        }
     };
 
     let start = if cap[1].is_empty() {
