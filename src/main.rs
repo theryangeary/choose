@@ -1,7 +1,16 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
 use std::path::PathBuf;
+use std::num::ParseIntError;
 use structopt::StructOpt;
+use regex::Regex;
+
+type Range = (Option<u32>, Option<u32>);
+
+enum Choice {
+    One(u32),
+    Range
+}
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
