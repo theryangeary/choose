@@ -17,7 +17,7 @@ enum Choice {
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
 struct Opt {
     /// Capture range of fields
-    #[structopt(parse(try_from_str = parse_range))]
+    #[structopt(parse(try_from_str = parse_choice))]
     choice: Choice,
 
     /// Specify field separator other than whitespace
@@ -54,7 +54,7 @@ fn main() {
     println!("Hello, world!");
 }
 
-fn parse_range(src: &str) -> Result<Choice, ParseIntError> {
+fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
     let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
 
     let cap = match re.captures_iter(src).next() {
