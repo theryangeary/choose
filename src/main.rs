@@ -18,7 +18,7 @@ enum Choice {
 struct Opt {
     /// Capture range of fields
     #[structopt(parse(try_from_str = parse_range))]
-    range: Range,
+    choice: Choice,
 
     /// Specify field separator other than whitespace
     #[structopt(short, long)]
@@ -54,7 +54,7 @@ fn main() {
     println!("Hello, world!");
 }
 
-fn parse_range(src: &str) -> Result<Range, ParseIntError> {
+fn parse_range(src: &str) -> Result<Choice, ParseIntError> {
     let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
 
     let cap = match re.captures_iter(src).next() {
@@ -80,5 +80,5 @@ fn parse_range(src: &str) -> Result<Range, ParseIntError> {
         }
     };
 
-    return Ok((start, end));
+    return Ok( Choice::FieldRange( (start, end) ));
 }
