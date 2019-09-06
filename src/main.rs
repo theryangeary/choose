@@ -55,6 +55,29 @@ fn main() {
 
 fn parse_range(src: &str) -> Result<Range, ParseIntError> {
     let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
-    let cap = re.captures_iter(src).next().unwrap();
-    return Ok((Some(cap[1].parse()?), Some(cap[2].parse()?)));
+
+    let cap = match re.captures_iter(src).next() {
+        Some(v) => v,
+        None => panic!("failed to parse range argument: {}", src),
+    };
+
+    let start = if cap[1].is_empty() {
+        None
+    } else {
+        match cap[1].parse() {
+            Ok(x) => Some(x),
+            Err(e) => panic!("failed to get range argument: {:?}", e),
+        }
+    };
+
+    let end = if cap[2].is_empty() {
+        None
+    } else {
+        match cap[2].parse() {
+            Ok(x) => Some(x),
+            Err(e) => panic!("failed to get range argument: {:?}", e),
+        }
+    };
+
+    return Ok((start, end));
 }
