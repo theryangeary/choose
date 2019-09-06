@@ -15,6 +15,10 @@ enum Choice {
 #[derive(Debug, StructOpt)]
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
 struct Opt {
+    /// Capture range of fields
+    #[structopt(parse(try_from_str = parse_range))]
+    range: Range,
+
     /// Specify field separator other than whitespace
     #[structopt(short, long)]
     field_separator: Option<String>,
