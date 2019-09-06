@@ -48,3 +48,9 @@ fn main() {
 
     println!("Hello, world!");
 }
+
+fn parse_range(src: &str) -> Result<Range, ParseIntError> {
+    let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
+    let cap = re.captures_iter(src).next().unwrap();
+    return Ok((Some(cap[1].parse()?), Some(cap[2].parse()?)));
+}
