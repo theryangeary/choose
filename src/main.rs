@@ -47,12 +47,15 @@ fn main() {
 
     let buf = BufReader::new(read);
 
-    for line in buf.lines() {
-        println!("{}", line.unwrap());
+    let lines: Vec<String> = buf.lines().map(|x| x.unwrap()).collect();
+    for line in lines {
+        for choice in &opt.choice {
+            choice.print_choice(&line);
+        }
+        println!();
     }
-
-    println!("Hello, world!");
 }
+
 
 fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
     let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
