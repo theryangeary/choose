@@ -16,21 +16,23 @@ enum Choice {
 
 impl Choice {
     fn print_choice(&self, line: &String, opt: &Opt) {
-        let words: Vec<&str> = line.split_whitespace().collect();
+        let words = line.split_whitespace().into_iter().enumerate();
 
         match self {
             Choice::Field(i) => {
-                if *i < words.len().try_into().unwrap() {
-                    print!("{} ", words[*i as usize]);
-                }
-            },
+                print!(
+                    "{} ",
+                    words
+                        .filter(|x| x.0 == *i as usize)
+                        .map(|x| x.1)
+                        .collect::<String>()
+                );
+            }
             Choice::FieldRange(r) => match r {
-                (None, None) => print!("{}", words.into_iter().collect::<String>()),
+                (None, None) => print!("{}", words.map(|x| x.1).collect::<String>()),
                 (Some(start), None) => print!(
                     "{} ",
                     words
-                        .into_iter()
-                        .enumerate()
                         .filter(|x| x.0 >= (*start).try_into().unwrap())
                         .map(|x| x.1)
                         .collect::<Vec<&str>>()
@@ -45,8 +47,6 @@ impl Choice {
                     print!(
                         "{} ",
                         words
-                            .into_iter()
-                            .enumerate()
                             .filter(|x| x.0 < e)
                             .map(|x| x.1)
                             .collect::<Vec<&str>>()
@@ -62,8 +62,6 @@ impl Choice {
                     print!(
                         "{} ",
                         words
-                            .into_iter()
-                            .enumerate()
                             .filter(|x| x.0 < e && x.0 >= (*start).try_into().unwrap())
                             .map(|x| x.1)
                             .collect::<Vec<&str>>()
