@@ -19,7 +19,11 @@ impl Choice {
         let words: Vec<&str> = line.split_whitespace().collect();
 
         match self {
-            Choice::Field(i) => print!("{} ", words[*i as usize]),
+            Choice::Field(i) => {
+                if *i < words.len().try_into().unwrap() {
+                    print!("{} ", words[*i as usize]);
+                }
+            },
             Choice::FieldRange(r) => match r {
                 (None, None) => print!("{}", words.into_iter().collect::<String>()),
                 (Some(start), None) => print!(
