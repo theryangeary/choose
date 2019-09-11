@@ -15,8 +15,9 @@ enum Choice {
 }
 
 impl Choice {
-    fn print_choice(&self, line: &String) {
+    fn print_choice(&self, line: &String, opt: &Opt) {
         let words: Vec<&str> = line.split_whitespace().collect();
+
         match self {
             Choice::Field(i) => print!("{} ", words[*i as usize]),
             Choice::FieldRange(r) => match r {
@@ -28,28 +29,77 @@ impl Choice {
                         .enumerate()
                         .filter(|x| x.0 >= (*start).try_into().unwrap())
                         .map(|x| x.1)
-                        .collect::<String>()
+                        .collect::<Vec<&str>>()
+                        .join(" ")
                 ),
-                (None, Some(end)) => print!(
-                    "{} ",
-                    words
-                        .into_iter()
-                        .enumerate()
-                        .filter(|x| x.0 < (*end).try_into().unwrap())
-                        .map(|x| x.1)
-                        .collect::<String>()
-                ),
-                (Some(start), Some(end)) => print!(
-                    "{} ",
-                    words
-                        .into_iter()
-                        .enumerate()
-                        .filter(|x| x.0 < (*end).try_into().unwrap() && x.0 >= (*start).try_into().unwrap())
-                        .map(|x| x.1)
-                        .collect::<String>()
-                ),
+                (None, Some(end)) => {
+                    let e: usize = if opt.inclusive {
+                        (end + 1).try_into().unwrap()
+                    } else {
+                        (*end).try_into().unwrap()
+                    };
+                    print!(
+                        "{} ",
+                        words
+                            .into_iter()
+                            .enumerate()
+                            .filter(|x| x.0 < e)
+                            .map(|x| x.1)
+                            .collect::<Vec<&str>>()
+                            .join(" ")
+                    )
+                }
+                (Some(start), Some(end)) => {
+                    let e: usize = if opt.inclusive {
+                        (end + 1).try_into().unwrap()
+                    } else {
+                        (*end).try_into().unwrap()
+                    };
+                    print!(
+                        "{} ",
+                        words
+                            .into_iter()
+                            .enumerate()
+                            .filter(|x| x.0 < e && x.0 >= (*start).try_into().unwrap())
+                            .map(|x| x.1)
+                            .collect::<Vec<&str>>()
+                            .join(" ")
+                    )
+                }
             },
         };
+    }
+
+    fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
+        let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
+
+        let cap = match re.captures_iter(src).next() {
+            Some(v) => v,
+            None => match src.parse() {
+                Ok(x) => return Ok(Choice::Field(x)),
+                Err(_) => panic!("failed to parse range argument: {}", src),
+            },
+        };
+
+        let start = if cap[1].is_empty() {
+            None
+        } else {
+            match cap[1].parse() {
+                Ok(x) => Some(x),
+                Err(e) => panic!("failed to get range argument: {:?}", e),
+            }
+        };
+
+        let end = if cap[2].is_empty() {
+            None
+        } else {
+            match cap[2].parse() {
+                Ok(x) => Some(x),
+                Err(e) => panic!("failed to get range argument: {:?}", e),
+            }
+        };
+
+        return Ok(Choice::FieldRange((start, end)));
     }
 }
 
@@ -92,40 +142,8 @@ fn main() {
     let lines: Vec<String> = buf.lines().map(|x| x.unwrap()).collect();
     for line in lines {
         for choice in &opt.choice {
-            choice.print_choice(&line);
+            choice.print_choice(&line, &opt);
         }
         println!();
     }
-}
-
-fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
-    let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
-
-    let cap = match re.captures_iter(src).next() {
-        Some(v) => v,
-        None => match src.parse() {
-            Ok(x) => return Ok(Choice::Field(x)),
-            Err(_) => panic!("failed to parse range argument: {}", src),
-        },
-    };
-
-    let start = if cap[1].is_empty() {
-        None
-    } else {
-        match cap[1].parse() {
-            Ok(x) => Some(x),
-            Err(e) => panic!("failed to get range argument: {:?}", e),
-        }
-    };
-
-    let end = if cap[2].is_empty() {
-        None
-    } else {
-        match cap[2].parse() {
-            Ok(x) => Some(x),
-            Err(e) => panic!("failed to get range argument: {:?}", e),
-        }
-    };
-
-    return Ok(Choice::FieldRange((start, end)));
 }
