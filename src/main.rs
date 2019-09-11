@@ -56,7 +56,6 @@ fn main() {
     }
 }
 
-
 fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
     let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
 
