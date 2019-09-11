@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::convert::TryInto;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
 use std::num::ParseIntError;
@@ -11,6 +12,45 @@ type Range = (Option<u32>, Option<u32>);
 enum Choice {
     Field(u32),
     FieldRange(Range),
+}
+
+impl Choice {
+    fn print_choice(&self, line: &String) {
+        let words: Vec<&str> = line.split_whitespace().collect();
+        match self {
+            Choice::Field(i) => print!("{} ", words[*i as usize]),
+            Choice::FieldRange(r) => match r {
+                (None, None) => print!("{}", words.into_iter().collect::<String>()),
+                (Some(start), None) => print!(
+                    "{} ",
+                    words
+                        .into_iter()
+                        .enumerate()
+                        .filter(|x| x.0 >= (*start).try_into().unwrap())
+                        .map(|x| x.1)
+                        .collect::<String>()
+                ),
+                (None, Some(end)) => print!(
+                    "{} ",
+                    words
+                        .into_iter()
+                        .enumerate()
+                        .filter(|x| x.0 < (*end).try_into().unwrap())
+                        .map(|x| x.1)
+                        .collect::<String>()
+                ),
+                (Some(start), Some(end)) => print!(
+                    "{} ",
+                    words
+                        .into_iter()
+                        .enumerate()
+                        .filter(|x| x.0 < (*end).try_into().unwrap() && x.0 >= (*start).try_into().unwrap())
+                        .map(|x| x.1)
+                        .collect::<String>()
+                ),
+            },
+        };
+    }
 }
 
 #[derive(Debug, StructOpt)]
