@@ -72,8 +72,10 @@ struct Opt {
     #[structopt(short, long, parse(from_os_str))]
     input: Option<PathBuf>,
 
-    /// Fields to print
-    #[structopt(required = true, min_values = 1, parse(try_from_str = parse_choice))]
+    /// Fields to print. Either x, x:, :y, or x:y, where x and y are integers, colons indicate a
+    /// range, and an empty field on either side of the colon continues to the beginning or end of
+    /// the line.
+    #[structopt(required = true, min_values = 1, parse(try_from_str = Choice::parse_choice))]
     choice: Vec<Choice>,
 }
 
