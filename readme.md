@@ -25,13 +25,25 @@ necessary.
 
 ## Usage
 
-`choose [OPTIONS] <FIELDS> FILE`
-
-### Options
-
 ```
--f <NUM>        Field separator
--i              Inclusive ranges
+`choose` sections from each line of files
+
+USAGE:
+    choose [FLAGS] [OPTIONS] <choice>...
+
+FLAGS:
+    -d, --debug        Activate debug mode
+    -h, --help         Prints help information
+    -n, --inclusive    Use inclusive ranges
+    -V, --version      Prints version information
+
+OPTIONS:
+    -f, --field-separator <field-separator>    Specify field separator other than whitespace
+    -i, --input <input>                        Input file
+
+ARGS:
+    <choice>...    Fields to print. Either x, x:, :y, or x:y, where x and y are integers, colons indicate a range,
+                   and an empty field on either side of the colon continues to the beginning or end of the line.
 ```
 
 ### Examples
@@ -42,7 +54,7 @@ choose -f ':' 0 3 5     # print the 0th, 3rd, and 5th item from a line, where
                         # items are separated by ':' instead of whitespace
 choose 2:5              # print everything from the 2nd to 5th item on the line,
                         # exclusive of the 5th
-choose -i 2:5           # print everything from the 2nd to 5th item on the line,
+choose -n 2:5           # print everything from the 2nd to 5th item on the line,
                         # inclusive of the 5th
 choose :3               # print the beginning of the line to the 3rd item,
                         # exclusive
