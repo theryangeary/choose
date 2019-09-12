@@ -16,7 +16,22 @@ enum Choice {
 
 impl Choice {
     fn print_choice(&self, line: &String, opt: &Opt) {
-        let words = line.split_whitespace().into_iter().enumerate();
+        let re = Regex::new(match &opt.field_separator {
+            Some(s) => s,
+            None => "[[:space:]]",
+        })
+        .unwrap_or_else(|_| {
+            panic!(
+                "Failed to compile regular expression: {:?}",
+                opt.field_separator
+            )
+        });
+
+        let words = re
+            .split(line)
+            .into_iter()
+            .filter(|s| !s.is_empty())
+            .enumerate();
 
         match self {
             Choice::Field(i) => {
