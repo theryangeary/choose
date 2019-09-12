@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
 use std::num::ParseIntError;
 use std::path::PathBuf;
+use std::process;
 use structopt::StructOpt;
 
 type Range = (Option<u32>, Option<u32>);
@@ -20,11 +21,10 @@ impl Choice {
             Some(s) => s,
             None => "[[:space:]]",
         })
-        .unwrap_or_else(|_| {
-            panic!(
-                "Failed to compile regular expression: {:?}",
-                opt.field_separator
-            )
+        .unwrap_or_else(|e| {
+            eprintln!("Failed to compile regular expression: {}", e);
+            // Exit code of 1 means failed to compile field_separator regex
+            process::exit(1);
         });
 
         let words = re
@@ -94,7 +94,11 @@ impl Choice {
             Some(v) => v,
             None => match src.parse() {
                 Ok(x) => return Ok(Choice::Field(x)),
-                Err(_) => panic!("failed to parse range argument: {}", src),
+                Err(_) => {
+                    eprintln!("failed to parse choice argument: {}", src);
+                    // Exit code of 2 means failed to parse choice argument
+                    process::exit(2);
+                }
             },
         };
 
@@ -103,7 +107,10 @@ impl Choice {
         } else {
             match cap[1].parse() {
                 Ok(x) => Some(x),
-                Err(e) => panic!("failed to get range argument: {:?}", e),
+                Err(_) => {
+                    eprintln!("failed to parse range start: {}", &cap[1]);
+                    process::exit(2);
+                }
             }
         };
 
@@ -112,7 +119,10 @@ impl Choice {
         } else {
             match cap[2].parse() {
                 Ok(x) => Some(x),
-                Err(e) => panic!("failed to get range argument: {:?}", e),
+                Err(_) => {
+                    eprintln!("failed to parse range end: {}", &cap[2]);
+                    process::exit(2);
+                }
             }
         };
 
