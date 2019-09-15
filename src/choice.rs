@@ -1,8 +1,17 @@
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn exp() {
-        assert_eq!(2 + 2, 4);
+    fn parse_single_choice() {
+        let result = Choice::parse_choice("6").unwrap();
+        assert_eq!(
+            6,
+            match result {
+                Choice::Field(x) => x,
+                _ => panic!(),
+            }
+        )
     }
 }
 
