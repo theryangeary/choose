@@ -2,77 +2,83 @@
 mod tests {
     use super::*;
 
-    #[test]
-    fn parse_single_choice() {
-        let result = Choice::parse_choice("6").unwrap();
-        assert_eq!(
-            6,
-            match result {
-                Choice::Field(x) => x,
-                _ => panic!(),
-            }
-        )
-    }
+    mod parse_choice_tests {
+        use super::*;
 
-    #[test]
-    fn parse_none_started_range() {
-        let result = Choice::parse_choice(":5").unwrap();
-        assert_eq!(
-            (None, Some(5)),
-            match result {
-                Choice::FieldRange(x) => x,
-                _ => panic!(),
-            }
-        )
-    }
+        #[test]
+        fn parse_single_choice() {
+            let result = Choice::parse_choice("6").unwrap();
+            assert_eq!(
+                6,
+                match result {
+                    Choice::Field(x) => x,
+                    _ => panic!(),
+                }
+            )
+        }
 
-    #[test]
-    fn parse_none_terminated_range() {
-        let result = Choice::parse_choice("5:").unwrap();
-        assert_eq!(
-            (Some(5), None),
-            match result {
-                Choice::FieldRange(x) => x,
-                _ => panic!(),
-            }
-        )
-    }
+        #[test]
+        fn parse_none_started_range() {
+            let result = Choice::parse_choice(":5").unwrap();
+            assert_eq!(
+                (None, Some(5)),
+                match result {
+                    Choice::FieldRange(x) => x,
+                    _ => panic!(),
+                }
+            )
+        }
 
-    #[test]
-    fn parse_full_range() {
-        let result = Choice::parse_choice("5:7").unwrap();
-        assert_eq!(
-            (Some(5), Some(7)),
-            match result {
-                Choice::FieldRange(x) => x,
-                _ => panic!(),
-            }
-        )
-    }
+        #[test]
+        fn parse_none_terminated_range() {
+            let result = Choice::parse_choice("5:").unwrap();
+            assert_eq!(
+                (Some(5), None),
+                match result {
+                    Choice::FieldRange(x) => x,
+                    _ => panic!(),
+                }
+            )
+        }
 
-    #[test]
-    fn parse_beginning_to_end_range() {
-        let result = Choice::parse_choice(":").unwrap();
-        assert_eq!(
-            (None, None),
-            match result {
-                Choice::FieldRange(x) => x,
-                _ => panic!(),
-            }
-        )
-    }
+        #[test]
+        fn parse_full_range() {
+            let result = Choice::parse_choice("5:7").unwrap();
+            assert_eq!(
+                (Some(5), Some(7)),
+                match result {
+                    Choice::FieldRange(x) => x,
+                    _ => panic!(),
+                }
+            )
+        }
 
-    // These tests should pass once parse_choice return errors properly, but until that time makes
-    // running other tests impossible.
-    //#[test]
-    //fn parse_bad_choice() {
+        #[test]
+        fn parse_beginning_to_end_range() {
+            let result = Choice::parse_choice(":").unwrap();
+            assert_eq!(
+                (None, None),
+                match result {
+                    Choice::FieldRange(x) => x,
+                    _ => panic!(),
+                }
+            )
+        }
+
+        // These tests should pass once parse_choice return errors properly, but until that time makes
+        // running other tests impossible.
+        //#[test]
+        //fn parse_bad_choice() {
         //assert!(Choice::parse_choice("d").is_err());
-    //}
-    //
-    //#[test]
-    //fn parse_bad_range() {
+        //}
+        //
+        //#[test]
+        //fn parse_bad_range() {
         //assert!(Choice::parse_choice("d:i").is_err());
-    //}
+        //}
+    }
+
+
 
 }
 
