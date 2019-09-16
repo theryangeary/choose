@@ -62,6 +62,18 @@ mod tests {
         )
     }
 
+    // These tests should pass once parse_choice return errors properly, but until that time makes
+    // running other tests impossible.
+    //#[test]
+    //fn parse_bad_choice() {
+        //assert!(Choice::parse_choice("d").is_err());
+    //}
+    //
+    //#[test]
+    //fn parse_bad_range() {
+        //assert!(Choice::parse_choice("d:i").is_err());
+    //}
+
 }
 
 use regex::Regex;
