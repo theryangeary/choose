@@ -6,6 +6,7 @@ orig_dir="$(pwd)"
 cd "$(git rev-parse --show-toplevel)"
 cargo build
 
+# basic functionality
 diff -w <(cargo run -- 0:2 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_0:2.txt")
 diff -w <(cargo run -- 0 3 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_0_3.txt")
 diff -w <(cargo run -- :2 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_:2.txt")
@@ -15,3 +16,14 @@ diff -w <(cargo run -- 12 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_12
 # add test for reverse range
 # add tests for different delimiters
 # add tests using piping
+
+set +e
+
+# test failure to parse arguments
+cargo run -- d:i -i ${test_dir}/lorem.txt >/dev/null
+r=$?
+if [ $r -ne 2 ]; then
+  echo "Failed to return error code 2 on failure to parse arguments"
+else
+  echo "Success"
+fi
