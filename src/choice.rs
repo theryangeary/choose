@@ -13,6 +13,55 @@ mod tests {
             }
         )
     }
+
+    #[test]
+    fn parse_none_started_range() {
+        let result = Choice::parse_choice(":5").unwrap();
+        assert_eq!(
+            (None, Some(5)),
+            match result {
+                Choice::FieldRange(x) => x,
+                _ => panic!(),
+            }
+        )
+    }
+
+    #[test]
+    fn parse_none_terminated_range() {
+        let result = Choice::parse_choice("5:").unwrap();
+        assert_eq!(
+            (Some(5), None),
+            match result {
+                Choice::FieldRange(x) => x,
+                _ => panic!(),
+            }
+        )
+    }
+
+    #[test]
+    fn parse_full_range() {
+        let result = Choice::parse_choice("5:7").unwrap();
+        assert_eq!(
+            (Some(5), Some(7)),
+            match result {
+                Choice::FieldRange(x) => x,
+                _ => panic!(),
+            }
+        )
+    }
+
+    #[test]
+    fn parse_beginning_to_end_range() {
+        let result = Choice::parse_choice(":").unwrap();
+        assert_eq!(
+            (None, None),
+            match result {
+                Choice::FieldRange(x) => x,
+                _ => panic!(),
+            }
+        )
+    }
+
 }
 
 use regex::Regex;
