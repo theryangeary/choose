@@ -65,3 +65,19 @@ choose :3               # print the beginning of the line to the 3rd item,
 
 choose 3:               # print the third item to the end of the line
 ```
+
+## Compilation and Installation
+
+In order to build `choose` you will need rust installed, and you can find
+instructions for that [here](https://www.rust-lang.org/tools/install).
+
+Then, to install:
+
+```bash
+git clone https://github.com/theryangeary/choose.git
+cd choose
+cargo build --release
+install target/release/choose <DESTDIR>
+```
+
+Just make sure DESTDIR is in your path.
