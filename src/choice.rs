@@ -78,6 +78,98 @@ mod tests {
         //}
     }
 
+    mod get_choice_slice_tests {
+        use super::*;
+
+        #[test]
+        fn print_0() {
+            let opt = Opt::from_iter(vec!["choose", "0"]);
+            assert_eq!(
+                vec!["rust"],
+                opt.choice[0].get_choice_slice(&String::from("rust is pretty cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_after_end() {
+            let opt = Opt::from_iter(vec!["choose", "10"]);
+            assert_eq!(
+                Vec::<&str>::new(),
+                opt.choice[0].get_choice_slice(&String::from("rust is pretty cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_1_to_3() {
+            let opt = Opt::from_iter(vec!["choose", "1:3"]);
+            assert_eq!(
+                vec!["is", "pretty"],
+                opt.choice[0].get_choice_slice(&String::from("rust is pretty cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_inclusive() {
+            let opt = Opt::from_iter(vec!["choose", "1:3", "-n"]);
+            assert_eq!(
+                vec!["is", "pretty", "cool"],
+                opt.choice[0].get_choice_slice(&String::from("rust is pretty cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_hashtag() {
+            let opt = Opt::from_iter(vec!["choose", "1:3", "-f", "#"]);
+            assert_eq!(
+                vec!["is", "pretty"],
+                opt.choice[0].get_choice_slice(&String::from("rust#is#pretty#cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_varying_multiple_hashtag() {
+            let opt = Opt::from_iter(vec!["choose", "1:3", "-f", "#"]);
+            assert_eq!(
+                vec!["is", "pretty"],
+                opt.choice[0].get_choice_slice(&String::from("rust##is###pretty####cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_varying_multiple_hashtag_inclusive() {
+            let opt = Opt::from_iter(vec!["choose", "1:3", "-f", "#", "-n"]);
+            assert_eq!(
+                vec!["is", "pretty", "cool"],
+                opt.choice[0].get_choice_slice(&String::from("rust##is###pretty####cool"), &opt)
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_regex_group_vowels() {
+            let opt = Opt::from_iter(vec!["choose", "1:3", "-f", "[aeiou]"]);
+            assert_eq!(
+                vec![" q", "ck br"],
+                opt.choice[0].get_choice_slice(
+                    &String::from("the quick brown fox jumped over the lazy dog"),
+                    &opt
+                )
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_regex_group_vowels_inclusive() {
+            let opt = Opt::from_iter(vec!["choose", "1:3", "-f", "[aeiou]", "-n"]);
+            assert_eq!(
+                vec![" q", "ck br", "wn f"],
+                opt.choice[0].get_choice_slice(
+                    &String::from("the quick brown fox jumped over the lazy dog"),
+                    &opt
+                )
+            );
+        }
+
+    }
+
 }
 
 use regex::Regex;
