@@ -27,3 +27,7 @@ if [ $r -ne 2 ]; then
 else
   echo "Success"
 fi
+
+cargo test
+
+cd $orig_dir
