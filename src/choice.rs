@@ -78,8 +78,6 @@ mod tests {
         //}
     }
 
-
-
 }
 
 use regex::Regex;
@@ -125,6 +123,10 @@ pub enum Choice {
 
 impl Choice {
     pub fn print_choice(&self, line: &String, opt: &Opt) {
+        print!("{}", self.get_choice_slice(line, opt).join(" "));
+    }
+
+    fn get_choice_slice<'a>(&self, line: &'a String, opt: &Opt) -> Vec<&'a str> {
         let re = Regex::new(match &opt.field_separator {
             Some(s) => s,
             None => "[[:space:]]",
@@ -142,39 +144,26 @@ impl Choice {
             .enumerate();
 
         match self {
-            Choice::Field(i) => {
-                print!(
-                    "{} ",
-                    words
-                        .filter(|x| x.0 == *i as usize)
-                        .map(|x| x.1)
-                        .collect::<String>()
-                );
-            }
+            Choice::Field(i) => words
+                .filter(|x| x.0 == *i as usize)
+                .map(|x| x.1)
+                .collect::<Vec<&str>>(),
             Choice::FieldRange(r) => match r {
-                (None, None) => print!("{}", words.map(|x| x.1).collect::<String>()),
-                (Some(start), None) => print!(
-                    "{} ",
-                    words
-                        .filter(|x| x.0 >= (*start).try_into().unwrap())
-                        .map(|x| x.1)
-                        .collect::<Vec<&str>>()
-                        .join(" ")
-                ),
+                (None, None) => words.map(|x| x.1).collect::<Vec<&str>>(),
+                (Some(start), None) => words
+                    .filter(|x| x.0 >= (*start).try_into().unwrap())
+                    .map(|x| x.1)
+                    .collect::<Vec<&str>>(),
                 (None, Some(end)) => {
                     let e: usize = if opt.inclusive {
                         (end + 1).try_into().unwrap()
                     } else {
                         (*end).try_into().unwrap()
                     };
-                    print!(
-                        "{} ",
-                        words
-                            .filter(|x| x.0 < e)
-                            .map(|x| x.1)
-                            .collect::<Vec<&str>>()
-                            .join(" ")
-                    )
+                    words
+                        .filter(|x| x.0 < e)
+                        .map(|x| x.1)
+                        .collect::<Vec<&str>>()
                 }
                 (Some(start), Some(end)) => {
                     let e: usize = if opt.inclusive {
@@ -182,17 +171,13 @@ impl Choice {
                     } else {
                         (*end).try_into().unwrap()
                     };
-                    print!(
-                        "{} ",
-                        words
-                            .filter(|x| x.0 < e && x.0 >= (*start).try_into().unwrap())
-                            .map(|x| x.1)
-                            .collect::<Vec<&str>>()
-                            .join(" ")
-                    )
+                    words
+                        .filter(|x| x.0 < e && x.0 >= (*start).try_into().unwrap())
+                        .map(|x| x.1)
+                        .collect::<Vec<&str>>()
                 }
             },
-        };
+        }
     }
 
     pub fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
