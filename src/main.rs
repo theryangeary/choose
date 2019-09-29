@@ -14,11 +14,16 @@ fn main() {
 
     let buf = BufReader::new(read);
 
-    let lines: Vec<String> = buf.lines().map(|x| x.unwrap()).collect();
+    let lines = buf.lines();
     for line in lines {
-        for choice in &opt.choice {
-            choice.print_choice(&line, &opt);
+        match line {
+            Ok(l) => {
+                for choice in &opt.choice {
+                    choice.print_choice(&l, &opt);
+                }
+                println!();
+            }
+            Err(e) => println!("ERROR: {}", e),
         }
-        println!();
     }
 }
