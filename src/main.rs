@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use structopt::StructOpt;
 
 mod choice;
@@ -14,14 +14,18 @@ fn main() {
 
     let buf = BufReader::new(read);
 
+    let stdout = io::stdout();
+    let lock = stdout.lock();
+    let mut handle = io::BufWriter::new(lock);
+
     let lines = buf.lines();
     for line in lines {
         match line {
             Ok(l) => {
                 for choice in &opt.choice {
-                    choice.print_choice(&l, &opt);
+                    choice.print_choice(&l, &opt, &mut handle);
                 }
-                println!();
+                writeln!(handle, "");
             }
             Err(e) => println!("ERROR: {}", e),
         }

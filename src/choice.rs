@@ -172,6 +172,7 @@ mod tests {
 
 }
 
+use crate::io::{BufWriter, Write};
 use regex::Regex;
 use std::convert::TryInto;
 use std::num::ParseIntError;
@@ -214,8 +215,13 @@ pub enum Choice {
 }
 
 impl Choice {
-    pub fn print_choice(&self, line: &String, opt: &Opt) {
-        print!("{}", self.get_choice_slice(line, opt).join(" "));
+    pub fn print_choice(
+        &self,
+        line: &String,
+        opt: &Opt,
+        handle: &mut BufWriter<std::io::StdoutLock>,
+    ) {
+        write!(handle, "{}", self.get_choice_slice(line, opt).join(" "));
     }
 
     fn get_choice_slice<'a>(&self, line: &'a String, opt: &Opt) -> Vec<&'a str> {
