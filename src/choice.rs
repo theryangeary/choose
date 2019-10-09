@@ -219,22 +219,13 @@ impl Choice {
         &self,
         line: &String,
         opt: &Opt,
+        re: &Regex,
         handle: &mut BufWriter<std::io::StdoutLock>,
     ) {
-        write!(handle, "{}", self.get_choice_slice(line, opt).join(" "));
+        write!(handle, "{}", self.get_choice_slice(line, opt, re).join(" "));
     }
 
-    fn get_choice_slice<'a>(&self, line: &'a String, opt: &Opt) -> Vec<&'a str> {
-        let re = Regex::new(match &opt.field_separator {
-            Some(s) => s,
-            None => "[[:space:]]",
-        })
-        .unwrap_or_else(|e| {
-            eprintln!("Failed to compile regular expression: {}", e);
-            // Exit code of 1 means failed to compile field_separator regex
-            process::exit(1);
-        });
-
+    fn get_choice_slice<'a>(&self, line: &'a String, opt: &Opt, re: &Regex) -> Vec<&'a str> {
         let words = re
             .split(line)
             .into_iter()
