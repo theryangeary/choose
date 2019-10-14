@@ -51,27 +51,27 @@ impl Choice {
                     .map(|x| x.1)
                     .collect::<Vec<&str>>(),
                 (None, Some(end)) => {
-                    let e: usize = if config.opt.inclusive {
-                        (end + 1).try_into().unwrap()
+                    let e: usize = if config.opt.exclusive {
+                        (end - 1).try_into().unwrap()
                     } else {
                         (*end).try_into().unwrap()
                     };
                     words
-                        .filter(|x| x.0 < e)
+                        .filter(|x| x.0 <= e)
                         .map(|x| x.1)
                         .collect::<Vec<&str>>()
                 }
                 (Some(start), Some(end)) => {
-                    let e: usize = if config.opt.inclusive {
-                        (end + 1).try_into().unwrap()
+                    let e: usize = if config.opt.exclusive {
+                        (end - 1).try_into().unwrap()
                     } else {
                         (*end).try_into().unwrap()
                     };
                     words
                         .filter(|x| {
-                            (x.0 < e && x.0 >= (*start).try_into().unwrap())
+                            (x.0 <= e && x.0 >= (*start).try_into().unwrap())
                                 || self.is_reverse_range()
-                                    && (x.0 > e && x.0 <= (*start).try_into().unwrap())
+                                    && (x.0 >= e && x.0 <= (*start).try_into().unwrap())
                         })
                         .map(|x| x.1)
                         .collect::<Vec<&str>>()
@@ -144,8 +144,8 @@ mod tests {
         }
 
         #[test]
-        fn print_1_to_3() {
-            let config = Config::from_iter(vec!["choose", "1:3"]);
+        fn print_1_to_3_exclusive() {
+            let config = Config::from_iter(vec!["choose", "1:3", "-x"]);
             assert_eq!(
                 vec!["is", "pretty"],
                 config.opt.choice[0]
@@ -154,8 +154,8 @@ mod tests {
         }
 
         #[test]
-        fn print_1_to_3_inclusive() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-n"]);
+        fn print_1_to_3() {
+            let config = Config::from_iter(vec!["choose", "1:3" ]);
             assert_eq!(
                 vec!["is", "pretty", "cool"],
                 config.opt.choice[0]
@@ -167,15 +167,15 @@ mod tests {
         fn print_1_to_3_separated_by_hashtag() {
             let config = Config::from_iter(vec!["choose", "1:3", "-f", "#"]);
             assert_eq!(
-                vec!["is", "pretty"],
+                vec!["is", "pretty", "cool"],
                 config.opt.choice[0]
                     .get_choice_slice(&String::from("rust#is#pretty#cool"), &config)
             );
         }
 
         #[test]
-        fn print_1_to_3_separated_by_varying_multiple_hashtag() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#"]);
+        fn print_1_to_3_separated_by_varying_multiple_hashtag_exclusive() {
+            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#", "-x"]);
             assert_eq!(
                 vec!["is", "pretty"],
                 config.opt.choice[0]
@@ -184,8 +184,8 @@ mod tests {
         }
 
         #[test]
-        fn print_1_to_3_separated_by_varying_multiple_hashtag_inclusive() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#", "-n"]);
+        fn print_1_to_3_separated_by_varying_multiple_hashtag() {
+            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#"]);
             assert_eq!(
                 vec!["is", "pretty", "cool"],
                 config.opt.choice[0]
@@ -194,8 +194,8 @@ mod tests {
         }
 
         #[test]
-        fn print_1_to_3_separated_by_regex_group_vowels() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "[aeiou]"]);
+        fn print_1_to_3_separated_by_regex_group_vowels_exclusive() {
+            let config = Config::from_iter(vec!["choose", "1:3", "-f", "[aeiou]", "-x"]);
             assert_eq!(
                 vec![" q", "ck br"],
                 config.opt.choice[0].get_choice_slice(
@@ -206,8 +206,8 @@ mod tests {
         }
 
         #[test]
-        fn print_1_to_3_separated_by_regex_group_vowels_inclusive() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "[aeiou]", "-n"]);
+        fn print_1_to_3_separated_by_regex_group_vowels() {
+            let config = Config::from_iter(vec!["choose", "1:3", "-f", "[aeiou]"]);
             assert_eq!(
                 vec![" q", "ck br", "wn f"],
                 config.opt.choice[0].get_choice_slice(
@@ -221,7 +221,7 @@ mod tests {
         fn print_3_to_1() {
             let config = Config::from_iter(vec!["choose", "3:1"]);
             assert_eq!(
-                vec!["pretty", "is"],
+                vec!["pretty", "is", "lang"],
                 config.opt.choice[0].get_choice_slice(
                     &String::from("rust lang is pretty darn cool"),
                     &config

@@ -7,13 +7,13 @@ cd "$(git rev-parse --show-toplevel)"
 cargo build
 
 # basic functionality
-diff -w <(cargo run -- 0:2 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_0:2.txt")
+diff -w <(cargo run -- 0:1 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_0:1.txt")
 diff -w <(cargo run -- 0 3 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_0_3.txt")
-diff -w <(cargo run -- :2 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_:2.txt")
+diff -w <(cargo run -- :1 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_:1.txt")
 diff -w <(cargo run -- 9 3 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_9_3.txt")
 diff -w <(cargo run -- 9 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_9.txt")
 diff -w <(cargo run -- 12 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_12.txt")
-diff -w <(cargo run -- 4:1 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_4:1.txt")
+diff -w <(cargo run -- 4:2 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_4:2.txt")
 # add tests for different delimiters
 # add tests using piping
 

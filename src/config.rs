@@ -13,9 +13,9 @@ pub struct Opt {
     #[structopt(short, long)]
     pub field_separator: Option<String>,
 
-    /// Use inclusive ranges
-    #[structopt(short = "n", long)]
-    pub inclusive: bool,
+    /// Use exclusive ranges, similar to array slicing in many programming languages
+    #[structopt(short = "x", long)]
+    pub exclusive: bool,
 
     /// Activate debug mode
     #[structopt(short, long)]
