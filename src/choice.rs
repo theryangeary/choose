@@ -106,6 +106,21 @@ mod tests {
         }
 
         #[test]
+        fn print_out_of_order() {
+            let config = Config::from_iter(vec!["choose", "3", "1"]);
+            assert_eq!(
+                vec!["cool"],
+                config.opt.choice[0]
+                    .get_choice_slice(&String::from("rust is pretty cool"), &config)
+            );
+            assert_eq!(
+                vec!["is"],
+                config.opt.choice[1]
+                    .get_choice_slice(&String::from("rust is pretty cool"), &config)
+            );
+        }
+
+        #[test]
         fn print_1_to_3() {
             let config = Config::from_iter(vec!["choose", "1:3"]);
             assert_eq!(
