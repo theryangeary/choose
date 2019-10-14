@@ -21,6 +21,16 @@ impl Choice {
         write!(handle, "{}", self.get_choice_slice(line, config).join(" "));
     }
 
+    pub fn is_reverse_range(&self) -> bool {
+        match self {
+            Choice::Field(_) => false,
+            Choice::FieldRange(r) => match r {
+                (Some(start), Some(end)) => end < start,
+                _ => false,
+            },
+        }
+    }
+
     fn get_choice_slice<'a>(&self, line: &'a String, config: &Config) -> Vec<&'a str> {
         let words = config
             .separator
@@ -29,7 +39,7 @@ impl Choice {
             .filter(|s| !s.is_empty())
             .enumerate();
 
-        match self {
+        let mut slices = match self {
             Choice::Field(i) => words
                 .filter(|x| x.0 == *i as usize)
                 .map(|x| x.1)
@@ -58,32 +68,45 @@ impl Choice {
                         (*end).try_into().unwrap()
                     };
                     words
-                        .filter(|x| x.0 < e && x.0 >= (*start).try_into().unwrap())
+                        .filter(|x| {
+                            (x.0 < e && x.0 >= (*start).try_into().unwrap())
+                                || self.is_reverse_range()
+                                    && (x.0 > e && x.0 <= (*start).try_into().unwrap())
+                        })
                         .map(|x| x.1)
                         .collect::<Vec<&str>>()
                 }
             },
-        }
+        };
+
+    if self.is_reverse_range() {
+        slices.reverse();
     }
+
+    return slices;
+
+}
 }
 
 #[cfg(test)]
 mod tests {
 
-    mod get_choice_slice_tests {
-        use crate::config::{Config, Opt};
-        use std::ffi::OsString;
-        use structopt::StructOpt;
+    use crate::config::{Config, Opt};
+    use std::ffi::OsString;
+    use structopt::StructOpt;
 
-        impl Config {
-            pub fn from_iter<I>(iter: I) -> Self
-            where
-                I: IntoIterator,
-                I::Item: Into<OsString> + Clone,
-            {
-                return Config::new(Opt::from_iter(iter));
-            }
+    impl Config {
+        pub fn from_iter<I>(iter: I) -> Self
+        where
+            I: IntoIterator,
+            I::Item: Into<OsString> + Clone,
+        {
+            return Config::new(Opt::from_iter(iter));
         }
+    }
+
+    mod get_choice_slice_tests {
+        use super::*;
 
         #[test]
         fn print_0() {
@@ -194,7 +217,53 @@ mod tests {
             );
         }
 
+        #[test]
+        fn print_3_to_1() {
+            let config = Config::from_iter(vec!["choose", "3:1"]);
+            assert_eq!(
+                vec!["pretty", "is"],
+                config.opt.choice[0].get_choice_slice(
+                    &String::from("rust lang is pretty darn cool"),
+                    &config
+                )
+            );
+        }
+
+    }
+
+    mod is_reverse_range_tests {
+        use super::*;
+
+        #[test]
+        fn is_field_reversed() {
+            let config = Config::from_iter(vec!["choose", "0"]);
+            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+        }
+
+        #[test]
+        fn is_field_range_no_start_reversed() {
+            let config = Config::from_iter(vec!["choose", ":2"]);
+            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+        }
+
+        #[test]
+        fn is_field_range_no_end_reversed() {
+            let config = Config::from_iter(vec!["choose", "2:"]);
+            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+        }
+
+        #[test]
+        fn is_field_range_no_start_or_end_reversed() {
+            let config = Config::from_iter(vec!["choose", ":"]);
+            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+        }
+
+        #[test]
+        fn is_reversed_field_range_reversed() {
+            let config = Config::from_iter(vec!["choose", "4:2"]);
+            assert_eq!(true, config.opt.choice[0].is_reverse_range());
+        }
+
     }
 
 }
-

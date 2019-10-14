@@ -13,7 +13,7 @@ diff -w <(cargo run -- :2 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_:2
 diff -w <(cargo run -- 9 3 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_9_3.txt")
 diff -w <(cargo run -- 9 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_9.txt")
 diff -w <(cargo run -- 12 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_12.txt")
-# add test for reverse range
+diff -w <(cargo run -- 4:1 -i ${test_dir}/lorem.txt) <(cat "${test_dir}/choose_4:1.txt")
 # add tests for different delimiters
 # add tests using piping
 
