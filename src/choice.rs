@@ -79,13 +79,12 @@ impl Choice {
             },
         };
 
-    if self.is_reverse_range() {
-        slices.reverse();
+        if self.is_reverse_range() {
+            slices.reverse();
+        }
+
+        return slices;
     }
-
-    return slices;
-
-}
 }
 
 #[cfg(test)]
@@ -155,7 +154,7 @@ mod tests {
 
         #[test]
         fn print_1_to_3() {
-            let config = Config::from_iter(vec!["choose", "1:3" ]);
+            let config = Config::from_iter(vec!["choose", "1:3"]);
             assert_eq!(
                 vec!["is", "pretty", "cool"],
                 config.opt.choice[0]
@@ -222,10 +221,8 @@ mod tests {
             let config = Config::from_iter(vec!["choose", "3:1"]);
             assert_eq!(
                 vec!["pretty", "is", "lang"],
-                config.opt.choice[0].get_choice_slice(
-                    &String::from("rust lang is pretty darn cool"),
-                    &config
-                )
+                config.opt.choice[0]
+                    .get_choice_slice(&String::from("rust lang is pretty darn cool"), &config)
             );
         }
 
