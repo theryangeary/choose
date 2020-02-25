@@ -38,7 +38,17 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(opt: Opt) -> Self {
+    pub fn new(mut opt: Opt) -> Self {
+        if opt.exclusive {
+            for mut choice in &mut opt.choice {
+                if choice.is_reverse_range() {
+                    choice.start = choice.start - 1;
+                } else {
+                    choice.end = choice.end - 1;
+                }
+            }
+        }
+
         let separator = Regex::new(match &opt.field_separator {
             Some(s) => s,
             None => "[[:space:]]",
@@ -57,7 +67,7 @@ impl Config {
         let cap = match re.captures_iter(src).next() {
             Some(v) => v,
             None => match src.parse() {
-                Ok(x) => return Ok(Choice::Field(x)),
+                Ok(x) => return Ok(Choice::new(x, x)),
                 Err(_) => {
                     eprintln!("failed to parse choice argument: {}", src);
                     // Exit code of 2 means failed to parse choice argument
@@ -67,10 +77,10 @@ impl Config {
         };
 
         let start = if cap[1].is_empty() {
-            None
+            usize::min_value()
         } else {
             match cap[1].parse() {
-                Ok(x) => Some(x),
+                Ok(x) => x,
                 Err(_) => {
                     eprintln!("failed to parse range start: {}", &cap[1]);
                     process::exit(2);
@@ -79,10 +89,10 @@ impl Config {
         };
 
         let end = if cap[2].is_empty() {
-            None
+            usize::max_value()
         } else {
             match cap[2].parse() {
-                Ok(x) => Some(x),
+                Ok(x) => x,
                 Err(_) => {
                     eprintln!("failed to parse range end: {}", &cap[2]);
                     process::exit(2);
@@ -90,7 +100,7 @@ impl Config {
             }
         };
 
-        return Ok(Choice::FieldRange((start, end)));
+        return Ok(Choice::new(start, end));
     }
 }
 
@@ -102,62 +112,41 @@ mod tests {
         use super::*;
 
         #[test]
-        fn parse_single_choice() {
+        fn parse_single_choice_start() {
             let result = Config::parse_choice("6").unwrap();
-            assert_eq!(
-                6,
-                match result {
-                    Choice::Field(x) => x,
-                    _ => panic!(),
-                }
-            )
+            assert_eq!(6, result.start)
+        }
+
+        #[test]
+        fn parse_single_choice_end() {
+            let result = Config::parse_choice("6").unwrap();
+            assert_eq!(6, result.end)
         }
 
         #[test]
         fn parse_none_started_range() {
             let result = Config::parse_choice(":5").unwrap();
-            assert_eq!(
-                (None, Some(5)),
-                match result {
-                    Choice::FieldRange(x) => x,
-                    _ => panic!(),
-                }
-            )
+            assert_eq!((usize::min_value(), 5), (result.start, result.end))
         }
 
         #[test]
         fn parse_none_terminated_range() {
             let result = Config::parse_choice("5:").unwrap();
-            assert_eq!(
-                (Some(5), None),
-                match result {
-                    Choice::FieldRange(x) => x,
-                    _ => panic!(),
-                }
-            )
+            assert_eq!((5, usize::max_value()), (result.start, result.end))
         }
 
         #[test]
         fn parse_full_range() {
             let result = Config::parse_choice("5:7").unwrap();
-            assert_eq!(
-                (Some(5), Some(7)),
-                match result {
-                    Choice::FieldRange(x) => x,
-                    _ => panic!(),
-                }
-            )
+            assert_eq!((5, 7), (result.start, result.end))
         }
 
         #[test]
         fn parse_beginning_to_end_range() {
             let result = Config::parse_choice(":").unwrap();
             assert_eq!(
-                (None, None),
-                match result {
-                    Choice::FieldRange(x) => x,
-                    _ => panic!(),
-                }
+                (usize::min_value(), usize::max_value()),
+                (result.start, result.end)
             )
         }
 
@@ -173,5 +162,4 @@ mod tests {
         //assert!(Config::parse_choice("d:i").is_err());
         //}
     }
-
 }

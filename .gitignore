@@ -1,2 +1,9 @@
 /target
 **/*.rs.bk
+tags
+todo
+bench_output/
+**/*.bench
+**/*.svg
+test/long*txt
+perf.data*
