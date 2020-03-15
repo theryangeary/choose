@@ -49,15 +49,30 @@ impl Config {
             }
         }
 
-        let separator = Regex::new(match &opt.field_separator {
+        let separator = match Regex::new(match &opt.field_separator {
             Some(s) => s,
             None => "[[:space:]]",
-        })
-        .unwrap_or_else(|e| {
-            eprintln!("Failed to compile regular expression: {}", e);
-            // Exit code of 1 means failed to compile field_separator regex
-            process::exit(1);
-        });
+        }) {
+            Ok(r) => r,
+            Err(e) => {
+                // Exit code of 1 means failed to compile field_separator regex
+                match e {
+                    regex::Error::Syntax(e) => {
+                        eprintln!("Syntax error compiling regular expression: {}", e);
+                        process::exit(1);
+                    }
+                    regex::Error::CompiledTooBig(e) => {
+                        eprintln!("Compiled regular expression too big: compiled size cannot exceed {} bytes", e);
+                        process::exit(1);
+                    }
+                    _ => {
+                        eprintln!("Error compiling regular expression: {}", e);
+                        process::exit(1);
+                    }
+                }
+            }
+        };
+
         Config { opt, separator }
     }
 
