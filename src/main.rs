@@ -2,6 +2,9 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use structopt::StructOpt;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod choice;
 mod config;
 mod reader;

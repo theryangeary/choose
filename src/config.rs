@@ -32,6 +32,10 @@ pub struct Opt {
     pub choice: Vec<Choice>,
 }
 
+lazy_static! {
+    static ref PARSE_CHOICE_RE: Regex = Regex::new(r"^(\d*):(\d*)$").unwrap();
+}
+
 pub struct Config {
     pub opt: Opt,
     pub separator: Regex,
@@ -77,9 +81,7 @@ impl Config {
     }
 
     pub fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
-        let re = Regex::new(r"^(\d*):(\d*)$").unwrap();
-
-        let cap = match re.captures_iter(src).next() {
+        let cap = match PARSE_CHOICE_RE.captures_iter(src).next() {
             Some(v) => v,
             None => match src.parse() {
                 Ok(x) => return Ok(Choice::new(x, x)),
