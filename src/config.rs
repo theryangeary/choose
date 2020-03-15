@@ -83,10 +83,9 @@ impl Config {
             Some(v) => v,
             None => match src.parse() {
                 Ok(x) => return Ok(Choice::new(x, x)),
-                Err(_) => {
+                Err(e) => {
                     eprintln!("failed to parse choice argument: {}", src);
-                    // Exit code of 2 means failed to parse choice argument
-                    process::exit(2);
+                    return Err(e);
                 }
             },
         };
@@ -96,9 +95,9 @@ impl Config {
         } else {
             match cap[1].parse() {
                 Ok(x) => x,
-                Err(_) => {
+                Err(e) => {
                     eprintln!("failed to parse range start: {}", &cap[1]);
-                    process::exit(2);
+                    return Err(e);
                 }
             }
         };
@@ -108,9 +107,9 @@ impl Config {
         } else {
             match cap[2].parse() {
                 Ok(x) => x,
-                Err(_) => {
+                Err(e) => {
                     eprintln!("failed to parse range end: {}", &cap[2]);
-                    process::exit(2);
+                    return Err(e);
                 }
             }
         };
@@ -165,16 +164,14 @@ mod tests {
             )
         }
 
-        // These tests should pass once parse_choice return errors properly, but until that time
-        // makes running other tests impossible.
-        //#[test]
-        //fn parse_bad_choice() {
-        //assert!(Config::parse_choice("d").is_err());
-        //}
+        #[test]
+        fn parse_bad_choice() {
+            assert!(Config::parse_choice("d").is_err());
+        }
 
-        //#[test]
-        //fn parse_bad_range() {
-        //assert!(Config::parse_choice("d:i").is_err());
-        //}
+        #[test]
+        fn parse_bad_range() {
+            assert!(Config::parse_choice("d:i").is_err());
+        }
     }
 }
