@@ -72,7 +72,6 @@ impl Choice {
         }
     }
 
-    #[cfg_attr(feature = "flame_it", flame)]
     pub fn is_reverse_range(&self) -> bool {
         self.end < self.start
     }
