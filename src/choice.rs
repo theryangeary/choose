@@ -62,8 +62,14 @@ impl Choice {
     }
 
     fn write_bytes<WriterType: Write>(handle: &mut BufWriter<WriterType>, b: &[u8]) {
-        handle.write(b).unwrap();
-        handle.write(b" ").unwrap();
+        match handle.write(b) {
+            Ok(_) => (),
+            Err(e) => eprintln!("Failed to write to output: {}", e),
+        }
+        match handle.write(b" ") {
+            Ok(_) => (),
+            Err(e) => eprintln!("Failed to write to output: {}", e),
+        }
     }
 
     #[cfg_attr(feature = "flame_it", flame)]

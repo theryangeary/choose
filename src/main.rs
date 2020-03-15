@@ -28,9 +28,12 @@ fn main() {
                 for choice in &config.opt.choice {
                     choice.print_choice(&l, &config, &mut handle);
                 }
-                handle.write(b"\n").unwrap();
+                match handle.write(b"\n") {
+                    Ok(_) => (),
+                    Err(e) => eprintln!("Failed to write to output: {}", e)
+                }
             }
-            Err(e) => println!("ERROR: {}", e),
+            Err(e) => println!("Failed to read line: {}", e),
         }
     }
 }
