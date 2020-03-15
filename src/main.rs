@@ -1,9 +1,10 @@
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, Read, Write};
 use structopt::StructOpt;
 
 mod choice;
 mod config;
+mod reader;
 use config::Config;
 
 fn main() {
@@ -15,14 +16,14 @@ fn main() {
         None => Box::new(io::stdin()) as Box<dyn Read>,
     };
 
-    let buf = BufReader::new(read);
+    let mut reader = reader::BufReader::new(read);
+    let mut buffer = String::new();
 
     let stdout = io::stdout();
     let lock = stdout.lock();
     let mut handle = io::BufWriter::new(lock);
 
-    let lines = buf.lines();
-    for line in lines {
+    while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
                 for choice in &config.opt.choice {
@@ -30,7 +31,7 @@ fn main() {
                 }
                 match handle.write(b"\n") {
                     Ok(_) => (),
-                    Err(e) => eprintln!("Failed to write to output: {}", e)
+                    Err(e) => eprintln!("Failed to write to output: {}", e),
                 }
             }
             Err(e) => println!("Failed to read line: {}", e),
