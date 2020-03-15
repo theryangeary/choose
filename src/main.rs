@@ -7,11 +7,13 @@ extern crate lazy_static;
 
 mod choice;
 mod config;
+mod opt;
 mod reader;
 use config::Config;
+use opt::Opt;
 
 fn main() {
-    let opt = config::Opt::from_args();
+    let opt = Opt::from_args();
     let config = Config::new(opt);
 
     let read = match &config.opt.input {

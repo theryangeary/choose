@@ -80,7 +80,8 @@ impl Choice {
 #[cfg(test)]
 mod tests {
 
-    use crate::config::{Config, Opt};
+    use crate::config::Config;
+    use crate::opt::Opt;
     use std::ffi::OsString;
     use std::io::{self, BufWriter, Write};
     use structopt::StructOpt;
