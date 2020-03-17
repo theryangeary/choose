@@ -29,4 +29,3 @@ pub struct Opt {
     #[structopt(required = true, min_values = 1, parse(try_from_str = Config::parse_choice))]
     pub choice: Vec<Choice>,
 }
-

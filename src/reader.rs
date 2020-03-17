@@ -6,7 +6,9 @@ pub struct BufReader<R> {
 
 impl<R: Read> BufReader<R> {
     pub fn new(f: R) -> Self {
-        Self { reader: io::BufReader::new(f) }
+        Self {
+            reader: io::BufReader::new(f),
+        }
     }
 
     pub fn read_line<'buf>(
