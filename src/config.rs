@@ -32,19 +32,19 @@ impl Config {
         }) {
             Ok(r) => r,
             Err(e) => {
-                // Exit code of 1 means failed to compile field_separator regex
+                // Exit code of 2 means failed to compile field_separator regex
                 match e {
                     regex::Error::Syntax(e) => {
                         eprintln!("Syntax error compiling regular expression: {}", e);
-                        process::exit(1);
+                        process::exit(2);
                     }
                     regex::Error::CompiledTooBig(e) => {
                         eprintln!("Compiled regular expression too big: compiled size cannot exceed {} bytes", e);
-                        process::exit(1);
+                        process::exit(2);
                     }
                     _ => {
                         eprintln!("Error compiling regular expression: {}", e);
-                        process::exit(1);
+                        process::exit(2);
                     }
                 }
             }
