@@ -33,6 +33,17 @@ if [ $r -ne 2 ]; then
   exit 1
 fi
 
+file=/tmp/000_file
+touch $file
+chmod 000 $file
+cargo run -- 3 -i $file >&/dev/null
+r=$?
+if [ $r -ne 3 ]; then
+  echo "Failed to return 3 on file open error"
+  exit 1
+fi
+rm -f $file
+
 cd $orig_dir
 
 printf "\033[1;32mAll tests passed\033[0m\n"

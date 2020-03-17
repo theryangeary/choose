@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{self, Read, Write};
+use std::process;
 use structopt::StructOpt;
 
 #[macro_use]
@@ -17,7 +18,14 @@ fn main() {
     let config = Config::new(opt);
 
     let read = match &config.opt.input {
-        Some(f) => Box::new(File::open(f).expect("Could not open file")) as Box<dyn Read>,
+        Some(f) => match File::open(f) {
+            Ok(fh) => Box::new(fh) as Box<dyn Read>,
+            Err(e) => {
+                eprintln!("Failed to open file: {}", e);
+                // exit code of 3 means failure to open input file
+                process::exit(3);
+            }
+        },
         None => Box::new(io::stdin()) as Box<dyn Read>,
     };
 
