@@ -1,15 +1,26 @@
+use std::convert::TryInto;
+
 use crate::config::Config;
 use crate::io::{BufWriter, Write};
 
 #[derive(Debug)]
 pub struct Choice {
-    pub start: usize,
-    pub end: usize,
+    pub start: isize,
+    pub end: isize,
+    negative_index: bool,
+    reversed: bool,
 }
 
 impl Choice {
-    pub fn new(start: usize, end: usize) -> Self {
-        Choice { start, end }
+    pub fn new(start: isize, end: isize) -> Self {
+        let negative_index = start < 0 || end < 0;
+        let reversed = end < start;
+        Choice {
+            start,
+            end,
+            negative_index,
+            reversed,
+        }
     }
 
     pub fn print_choice<WriterType: Write>(
@@ -20,9 +31,9 @@ impl Choice {
     ) {
         let mut line_iter = config.separator.split(line).filter(|s| !s.is_empty());
 
-        if self.is_reverse_range() {
+        if self.is_reverse_range() && !self.has_negative_index() {
             if self.end > 0 {
-                line_iter.nth(self.end - 1);
+                line_iter.nth((self.end - 1).try_into().unwrap());
             }
 
             let mut stack = Vec::new();
@@ -43,9 +54,37 @@ impl Choice {
                     None => break,
                 }
             }
+        } else if self.has_negative_index() {
+            let vec = line_iter.collect::<Vec<&str>>();
+
+            let start = if self.start >= 0 {
+                self.start.try_into().unwrap()
+            } else {
+                vec.len()
+                    .checked_sub(self.start.abs().try_into().unwrap())
+                    .unwrap()
+            };
+
+            let end = if self.end >= 0 {
+                self.end.try_into().unwrap()
+            } else {
+                vec.len()
+                    .checked_sub(self.end.abs().try_into().unwrap())
+                    .unwrap()
+            };
+
+            if end > start {
+                for word in vec[start..=std::cmp::min(end, vec.len() - 1)].iter() {
+                    Choice::write_bytes(handle, word.as_bytes());
+                }
+            } else if self.start < 0 {
+                for word in vec[end..=std::cmp::min(start, vec.len() - 1)].iter().rev() {
+                    Choice::write_bytes(handle, word.as_bytes());
+                }
+            }
         } else {
             if self.start > 0 {
-                line_iter.nth(self.start - 1);
+                line_iter.nth((self.start - 1).try_into().unwrap());
             }
 
             for i in 0..=(self.end - self.start) {
@@ -73,7 +112,11 @@ impl Choice {
     }
 
     pub fn is_reverse_range(&self) -> bool {
-        self.end < self.start
+        self.reversed
+    }
+
+    pub fn has_negative_index(&self) -> bool {
+        self.negative_index
     }
 }
 
@@ -382,6 +425,93 @@ mod tests {
                 String::from("rust"),
                 MockStdout::str_from_buf_writer(handle)
             );
+        }
+
+        #[test]
+        fn print_neg3_to_neg1() {
+            let config = Config::from_iter(vec!["choose", "-3:-1"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("rust lang is pretty darn cool"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(
+                String::from("pretty darn cool"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_neg1_to_neg3() {
+            let config = Config::from_iter(vec!["choose", "-1:-3"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("rust lang is pretty darn cool"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(
+                String::from("cool darn pretty"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_neg2_to_end() {
+            let config = Config::from_iter(vec!["choose", "-2:"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("rust lang is pretty darn cool"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(
+                String::from("darn cool"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_start_to_neg3() {
+            let config = Config::from_iter(vec!["choose", ":-3"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("rust lang is pretty darn cool"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(
+                String::from("rust lang is pretty"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_1_to_neg3() {
+            let config = Config::from_iter(vec!["choose", "1:-3"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("rust lang is pretty darn cool"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(
+                String::from("lang is pretty"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_5_to_neg3_empty() {
+            let config = Config::from_iter(vec!["choose", "5:-3"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("rust lang is pretty darn cool"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(String::from(""), MockStdout::str_from_buf_writer(handle));
         }
     }
 

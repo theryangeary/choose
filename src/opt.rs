@@ -6,6 +6,7 @@ use crate::config::Config;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
+#[structopt(setting = structopt::clap::AppSettings::AllowLeadingHyphen)]
 pub struct Opt {
     /// Specify field separator other than whitespace
     #[structopt(short, long)]

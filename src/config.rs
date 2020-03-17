@@ -6,7 +6,7 @@ use crate::choice::Choice;
 use crate::opt::Opt;
 
 lazy_static! {
-    static ref PARSE_CHOICE_RE: Regex = Regex::new(r"^(\d*):(\d*)$").unwrap();
+    static ref PARSE_CHOICE_RE: Regex = Regex::new(r"^(-?\d*):(-?\d*)$").unwrap();
 }
 
 pub struct Config {
@@ -66,7 +66,7 @@ impl Config {
         };
 
         let start = if cap[1].is_empty() {
-            usize::min_value()
+            0
         } else {
             match cap[1].parse() {
                 Ok(x) => x,
@@ -78,7 +78,7 @@ impl Config {
         };
 
         let end = if cap[2].is_empty() {
-            usize::max_value()
+            isize::max_value()
         } else {
             match cap[2].parse() {
                 Ok(x) => x,
@@ -115,28 +115,55 @@ mod tests {
         #[test]
         fn parse_none_started_range() {
             let result = Config::parse_choice(":5").unwrap();
-            assert_eq!((usize::min_value(), 5), (result.start, result.end))
+            assert_eq!((0, 5), (result.start, result.end))
         }
 
         #[test]
         fn parse_none_terminated_range() {
             let result = Config::parse_choice("5:").unwrap();
-            assert_eq!((5, usize::max_value()), (result.start, result.end))
+            assert_eq!((5, isize::max_value()), (result.start, result.end))
         }
 
         #[test]
-        fn parse_full_range() {
+        fn parse_full_range_pos_pos() {
             let result = Config::parse_choice("5:7").unwrap();
             assert_eq!((5, 7), (result.start, result.end))
         }
 
         #[test]
+        fn parse_full_range_neg_neg() {
+            let result = Config::parse_choice("-3:-1").unwrap();
+            assert_eq!((-3, -1), (result.start, result.end))
+        }
+
+        #[test]
+        fn parse_neg_started_none_ended() {
+            let result = Config::parse_choice("-3:").unwrap();
+            assert_eq!((-3, isize::max_value()), (result.start, result.end))
+        }
+
+        #[test]
+        fn parse_none_started_neg_ended() {
+            let result = Config::parse_choice(":-1").unwrap();
+            assert_eq!((0, -1), (result.start, result.end))
+        }
+
+        #[test]
+        fn parse_full_range_pos_neg() {
+            let result = Config::parse_choice("5:-3").unwrap();
+            assert_eq!((5, -3), (result.start, result.end))
+        }
+
+        #[test]
+        fn parse_full_range_neg_pos() {
+            let result = Config::parse_choice("-3:5").unwrap();
+            assert_eq!((-3, 5), (result.start, result.end))
+        }
+
+        #[test]
         fn parse_beginning_to_end_range() {
             let result = Config::parse_choice(":").unwrap();
-            assert_eq!(
-                (usize::min_value(), usize::max_value()),
-                (result.start, result.end)
-            )
+            assert_eq!((0, isize::max_value()), (result.start, result.end))
         }
 
         #[test]
