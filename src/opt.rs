@@ -8,11 +8,11 @@ use crate::config::Config;
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
 #[structopt(setting = structopt::clap::AppSettings::AllowLeadingHyphen)]
 pub struct Opt {
-    /// Specify field separator other than whitespace
+    /// Specify field separator other than whitespace, using Rust `regex` syntax
     #[structopt(short, long)]
     pub field_separator: Option<String>,
 
-    /// Use exclusive ranges, similar to array slicing in many programming languages
+    /// Use exclusive ranges, similar to array indexing in many programming languages
     #[structopt(short = "x", long)]
     pub exclusive: bool,
 
