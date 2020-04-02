@@ -68,7 +68,7 @@ choose -f ':' 0 3 5     # print the 0th, 3rd, and 5th item from a line, where
                         # items are separated by ':' instead of whitespace
 
 choose 2:5              # print everything from the 2nd to 5th item on the line,
-                        # exclusive of the 5th
+                        # inclusive of the 5th
 
 choose -x 2:5           # print everything from the 2nd to 5th item on the line,
                         # exclusive of the 5th
