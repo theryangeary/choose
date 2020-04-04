@@ -29,7 +29,10 @@ impl Choice {
         config: &Config,
         handle: &mut BufWriter<WriterType>,
     ) {
-        let mut line_iter = config.separator.split(line).filter(|s| !s.is_empty());
+        let mut line_iter = config
+            .separator
+            .split(line)
+            .filter(|s| !s.is_empty() || config.opt.non_greedy);
 
         if self.is_reverse_range() && !self.has_negative_index() {
             if self.end > 0 {
