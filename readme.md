@@ -99,6 +99,10 @@ install target/release/choose <DESTDIR>
 
 Just make sure DESTDIR is in your path.
 
+### Packaging status
+
+Fedora/CentOS [COPR](https://copr.fedorainfracloud.org/coprs/atim/choose/): `sudo dnf copr enable atim/choose -y && sudo dnf install choose`
+
 ### Benchmarking
 
 Benchmarking is performed using the [`bench` utility](https://github.com/Gabriel439/bench).
@@ -130,3 +134,4 @@ bore no ye of paid rent form. Old design are dinner better nearer silent excuse.
 She which are maids boy sense her shade. Considered reasonable we affronting on
 expression in. So cordial anxious mr delight. Shot his has must wish from sell
 ```
+
