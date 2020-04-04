@@ -101,13 +101,18 @@ impl Choice {
     }
 
     fn write_bytes<WriterType: Write>(handle: &mut BufWriter<WriterType>, b: &[u8]) {
-        match handle.write(b) {
-            Ok(_) => (),
-            Err(e) => eprintln!("Failed to write to output: {}", e),
-        }
-        match handle.write(b" ") {
-            Ok(_) => (),
-            Err(e) => eprintln!("Failed to write to output: {}", e),
+        let num_bytes_written = match handle.write(b) {
+            Ok(x) => x,
+            Err(e) => {
+                eprintln!("Failed to write to output: {}", e);
+                0
+            }
+        };
+        if num_bytes_written > 0 {
+            match handle.write(b" ") {
+                Ok(_) => (),
+                Err(e) => eprintln!("Failed to write to output: {}", e),
+            }
         }
     }
 
