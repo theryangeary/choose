@@ -85,6 +85,8 @@ choose -3:-1            # print the last three items from a line
 
 ## Compilation and Installation
 
+### Installing From Source
+
 In order to build `choose` you will need the rust toolchain installed. You can
 find instructions [here](https://www.rust-lang.org/tools/install).
 
@@ -99,9 +101,14 @@ install target/release/choose <DESTDIR>
 
 Just make sure DESTDIR is in your path.
 
-### Packaging status
+### Installing From Package Managers
 
-Fedora/CentOS [COPR](https://copr.fedorainfracloud.org/coprs/atim/choose/): `sudo dnf copr enable atim/choose -y && sudo dnf install choose`
+Fedora/CentOS [COPR](https://copr.fedorainfracloud.org/coprs/atim/choose/):
+
+```
+# dnf copr enable atim/choose
+# dnf install choose
+```
 
 ### Benchmarking
 
