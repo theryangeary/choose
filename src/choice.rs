@@ -513,6 +513,49 @@ mod tests {
             );
             assert_eq!(String::from(""), MockStdout::str_from_buf_writer(handle));
         }
+
+        #[test]
+        fn print_0_to_2_greedy() {
+            let config = Config::from_iter(vec!["choose", "0:2", "-f", ":"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
+            assert_eq!(
+                String::from("a b c"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_0_to_2_non_greedy() {
+            let config = Config::from_iter(vec!["choose", "0:2", "-n", "-f", ":"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
+            assert_eq!(String::from("a b"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_2_to_neg_1_non_greedy_negative() {
+            let config = Config::from_iter(vec!["choose", "2:-1", "-n", "-f", ":"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
+            assert_eq!(String::from("c d"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_2_to_0_non_greedy_reversed() {
+            let config = Config::from_iter(vec!["choose", "2:0", "-n", "-f", ":"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
+            assert_eq!(String::from("b a"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_neg_1_to_neg_3_non_greedy_negative_reversed() {
+            let config = Config::from_iter(vec!["choose", "-1:-3", "-n", "-f", ":"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
+            assert_eq!(String::from("d"), MockStdout::str_from_buf_writer(handle));
+        }
     }
 
     mod is_reverse_range_tests {
