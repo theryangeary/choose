@@ -12,6 +12,10 @@ pub struct Opt {
     #[structopt(short, long)]
     pub field_separator: Option<String>,
 
+    /// Use non-greedy field separators
+    #[structopt(short, long)]
+    pub non_greedy: bool,
+
     /// Use exclusive ranges, similar to array indexing in many programming languages
     #[structopt(short = "x", long)]
     pub exclusive: bool,
