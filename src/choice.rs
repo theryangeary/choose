@@ -51,12 +51,16 @@ impl Choice {
                 }
             }
 
+            let mut iter = stack.iter().rev().peekable();
             loop {
-                match stack.pop() {
+                match iter.next() {
                     Some(s) => Choice::write_bytes(
                         handle,
                         s.as_bytes(),
-                        Some(config.opt.output_field_separator),
+                        match iter.peek() {
+                            Some(_) => Some(config.opt.output_field_separator),
+                            None => None,
+                        },
                     ),
                     None => break,
                 }
