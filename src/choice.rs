@@ -564,6 +564,17 @@ mod tests {
             config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
             assert_eq!(String::from("d"), MockStdout::str_from_buf_writer(handle));
         }
+
+        #[test]
+        fn print_1_to_3_with_output_field_separator() {
+            let config = Config::from_iter(vec!["choose", "1:3", "-o", "#$%"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
+            assert_eq!(
+                String::from("b#$%c#$%d"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
     }
 
     mod is_reverse_range_tests {
