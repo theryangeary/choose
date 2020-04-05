@@ -23,11 +23,11 @@ impl Choice {
         }
     }
 
-    pub fn print_choice<WriterType: Write>(
+    pub fn print_choice<W: Write>(
         &self,
         line: &String,
         config: &Config,
-        handle: &mut BufWriter<WriterType>,
+        handle: &mut BufWriter<W>,
     ) {
         let mut line_iter = config
             .separator
@@ -53,40 +53,17 @@ impl Choice {
 
             loop {
                 match stack.pop() {
-                    Some(s) => {
-                        Choice::write_bytes(handle, s.as_bytes(), config.opt.output_field_separator)
-                    }
+                    Some(s) => Choice::write_bytes(
+                        handle,
+                        s.as_bytes(),
+                        Some(config.opt.output_field_separator),
+                    ),
                     None => break,
                 }
             }
         } else if self.has_negative_index() {
             let vec = line_iter.collect::<Vec<&str>>();
-
-            let start = if self.start >= 0 {
-                self.start.try_into().unwrap()
-            } else {
-                vec.len()
-                    .checked_sub(self.start.abs().try_into().unwrap())
-                    .unwrap()
-            };
-
-            let end = if self.end >= 0 {
-                self.end.try_into().unwrap()
-            } else {
-                vec.len()
-                    .checked_sub(self.end.abs().try_into().unwrap())
-                    .unwrap()
-            };
-
-            if end > start {
-                for word in vec[start..=std::cmp::min(end, vec.len() - 1)].iter() {
-                    Choice::write_bytes(handle, word.as_bytes(), config.opt.output_field_separator);
-                }
-            } else if self.start < 0 {
-                for word in vec[end..=std::cmp::min(start, vec.len() - 1)].iter().rev() {
-                    Choice::write_bytes(handle, word.as_bytes(), config.opt.output_field_separator);
-                }
-            }
+            self.print_negative_choice(vec, config, handle);
         } else {
             if self.start > 0 {
                 line_iter.nth((self.start - 1).try_into().unwrap());
@@ -94,9 +71,11 @@ impl Choice {
 
             for i in 0..=(self.end - self.start) {
                 match line_iter.next() {
-                    Some(s) => {
-                        Choice::write_bytes(handle, s.as_bytes(), config.opt.output_field_separator)
-                    }
+                    Some(s) => Choice::write_bytes(
+                        handle,
+                        s.as_bytes(),
+                        Some(config.opt.output_field_separator),
+                    ),
                     None => break,
                 };
 
@@ -107,10 +86,60 @@ impl Choice {
         }
     }
 
+    fn print_negative_choice<W: Write>(
+        &self,
+        vec: Vec<&str>,
+        config: &Config,
+        handle: &mut BufWriter<W>,
+    ) {
+        let start = if self.start >= 0 {
+            self.start.try_into().unwrap()
+        } else {
+            vec.len()
+                .checked_sub(self.start.abs().try_into().unwrap())
+                .unwrap()
+        };
+
+        let end = if self.end >= 0 {
+            self.end.try_into().unwrap()
+        } else {
+            vec.len()
+                .checked_sub(self.end.abs().try_into().unwrap())
+                .unwrap()
+        };
+
+        if end > start {
+            for word in vec[start..std::cmp::min(end, vec.len() - 1)].iter() {
+                Choice::write_bytes(
+                    handle,
+                    word.as_bytes(),
+                    Some(config.opt.output_field_separator),
+                );
+            }
+            Choice::write_bytes(
+                handle,
+                vec[std::cmp::min(end, vec.len() - 1)].as_bytes(),
+                None,
+            );
+        } else if self.start < 0 {
+            for word in vec[end + 1..=std::cmp::min(start, vec.len() - 1)]
+                .iter()
+                .rev()
+            {
+                Choice::write_bytes(
+                    handle,
+                    word.as_bytes(),
+                    Some(config.opt.output_field_separator),
+                );
+            }
+            Choice::write_bytes(handle, vec[end].as_bytes(), None);
+        }
+    }
+
     fn write_bytes<WriterType: Write>(
         handle: &mut BufWriter<WriterType>,
         b: &[u8],
-        output_field_separator: char,
+        output_field_separator: Option<char>,
     ) {
         let num_bytes_written = match handle.write(b) {
             Ok(x) => x,
@@ -119,12 +148,17 @@ impl Choice {
                 0
             }
         };
-        if num_bytes_written > 0 {
-            match handle.write(&[output_field_separator as u8]) {
-                Ok(_) => (),
-                Err(e) => eprintln!("Failed to write to output: {}", e),
+        match output_field_separator {
+            Some(s) => {
+                if num_bytes_written > 0 {
+                    match handle.write(&[s as u8]) {
+                        Ok(_) => (),
+                        Err(e) => eprintln!("Failed to write to output: {}", e),
+                    }
+                }
             }
-        }
+            None => (),
+        };
     }
 
     pub fn is_reverse_range(&self) -> bool {
