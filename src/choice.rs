@@ -53,7 +53,9 @@ impl Choice {
 
             loop {
                 match stack.pop() {
-                    Some(s) => Choice::write_bytes(handle, s.as_bytes()),
+                    Some(s) => {
+                        Choice::write_bytes(handle, s.as_bytes(), config.opt.output_field_separator)
+                    }
                     None => break,
                 }
             }
@@ -78,11 +80,11 @@ impl Choice {
 
             if end > start {
                 for word in vec[start..=std::cmp::min(end, vec.len() - 1)].iter() {
-                    Choice::write_bytes(handle, word.as_bytes());
+                    Choice::write_bytes(handle, word.as_bytes(), config.opt.output_field_separator);
                 }
             } else if self.start < 0 {
                 for word in vec[end..=std::cmp::min(start, vec.len() - 1)].iter().rev() {
-                    Choice::write_bytes(handle, word.as_bytes());
+                    Choice::write_bytes(handle, word.as_bytes(), config.opt.output_field_separator);
                 }
             }
         } else {
@@ -92,7 +94,9 @@ impl Choice {
 
             for i in 0..=(self.end - self.start) {
                 match line_iter.next() {
-                    Some(s) => Choice::write_bytes(handle, s.as_bytes()),
+                    Some(s) => {
+                        Choice::write_bytes(handle, s.as_bytes(), config.opt.output_field_separator)
+                    }
                     None => break,
                 };
 
@@ -103,7 +107,11 @@ impl Choice {
         }
     }
 
-    fn write_bytes<WriterType: Write>(handle: &mut BufWriter<WriterType>, b: &[u8]) {
+    fn write_bytes<WriterType: Write>(
+        handle: &mut BufWriter<WriterType>,
+        b: &[u8],
+        output_field_separator: char,
+    ) {
         let num_bytes_written = match handle.write(b) {
             Ok(x) => x,
             Err(e) => {
@@ -112,7 +120,7 @@ impl Choice {
             }
         };
         if num_bytes_written > 0 {
-            match handle.write(b" ") {
+            match handle.write(&[output_field_separator as u8]) {
                 Ok(_) => (),
                 Err(e) => eprintln!("Failed to write to output: {}", e),
             }
