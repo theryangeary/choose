@@ -39,8 +39,12 @@ fn main() {
     while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
-                for choice in &config.opt.choice {
+                let choice_iter = &mut config.opt.choice.iter().peekable();
+                while let Some(choice) = choice_iter.next() {
                     choice.print_choice(&l, &config, &mut handle);
+                    if choice_iter.peek().is_some() {
+                        choice::Choice::write_separator(&config, &mut handle);
+                    }
                 }
                 match handle.write(b"\n") {
                     Ok(_) => (),

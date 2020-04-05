@@ -12,6 +12,7 @@ lazy_static! {
 pub struct Config {
     pub opt: Opt,
     pub separator: Regex,
+    pub output_separator: Box<[u8]>,
 }
 
 impl Config {
@@ -50,7 +51,16 @@ impl Config {
             }
         };
 
-        Config { opt, separator }
+        let output_separator = match opt.output_field_separator.clone() {
+            Some(s) => s.into_boxed_str().into_boxed_bytes(),
+            None => Box::new([0x20; 1]),
+        };
+
+        Config {
+            opt,
+            separator,
+            output_separator,
+        }
     }
 
     pub fn parse_choice(src: &str) -> Result<Choice, ParseIntError> {
@@ -90,6 +100,10 @@ impl Config {
         };
 
         return Ok(Choice::new(start, end));
+    }
+
+    pub fn parse_output_field_separator(src: &str) -> String {
+        String::from(src)
     }
 }
 

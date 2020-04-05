@@ -8,6 +8,7 @@ flamegraph_commit: release-debug
 
 .PHONY: test
 test:
+	cargo test
 	test/e2e_test.sh
 
 bench: release
