@@ -140,11 +140,15 @@ impl Choice {
             }
         };
         if num_bytes_written > 0 && print_separator {
-            match handle.write(&config.output_separator) {
-                Ok(_) => (),
-                Err(e) => eprintln!("Failed to write to output: {}", e),
-            }
+            Choice::write_separator(config, handle);
         };
+    }
+
+    pub fn write_separator<W: Write>(config: &Config, handle: &mut BufWriter<W>) {
+        match handle.write(&config.output_separator) {
+            Ok(_) => (),
+            Err(e) => eprintln!("Failed to write to output: {}", e),
+        }
     }
 
     pub fn is_reverse_range(&self) -> bool {
