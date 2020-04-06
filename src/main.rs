@@ -39,8 +39,15 @@ fn main() {
     while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
-                for choice in &config.opt.choice {
+                let mut choice_iter = &mut config.opt.choice.iter().peekable();
+                while let Some(choice) = choice_iter.next() {
                     choice.print_choice(&l, &config, &mut handle);
+                    if choice_iter.peek().is_some() {
+                        match handle.write(&config.output_separator) {
+                            Ok(_) => (),
+                            Err(e) => eprintln!("Failed to write to output: {}", e),
+                        }
+                    }
                 }
                 match handle.write(b"\n") {
                     Ok(_) => (),

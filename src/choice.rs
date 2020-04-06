@@ -54,14 +54,9 @@ impl Choice {
             let mut iter = stack.iter().rev().peekable();
             loop {
                 match iter.next() {
-                    Some(s) => Choice::write_bytes(
-                        handle,
-                        s.as_bytes(),
-                        match iter.peek() {
-                            Some(_) => Some(config.opt.output_field_separator),
-                            None => None,
-                        },
-                    ),
+                    Some(s) => {
+                        Choice::write_bytes(s.as_bytes(), config, handle, iter.peek().is_some())
+                    }
                     None => break,
                 }
             }
@@ -73,19 +68,17 @@ impl Choice {
                 line_iter.nth((self.start - 1).try_into().unwrap());
             }
 
-            for i in 0..=(self.end - self.start) {
-                match line_iter.next() {
+            let mut peek_line_iter = line_iter.peekable();
+            for i in self.start..=self.end {
+                match peek_line_iter.next() {
                     Some(s) => Choice::write_bytes(
-                        handle,
                         s.as_bytes(),
-                        Some(config.opt.output_field_separator),
+                        config,
+                        handle,
+                        peek_line_iter.peek().is_some() && i != self.end,
                     ),
                     None => break,
                 };
-
-                if self.end <= self.start + i {
-                    break;
-                }
             }
         }
     }
@@ -114,36 +107,30 @@ impl Choice {
 
         if end > start {
             for word in vec[start..std::cmp::min(end, vec.len() - 1)].iter() {
-                Choice::write_bytes(
-                    handle,
-                    word.as_bytes(),
-                    Some(config.opt.output_field_separator),
-                );
+                Choice::write_bytes(word.as_bytes(), config, handle, true);
             }
             Choice::write_bytes(
-                handle,
                 vec[std::cmp::min(end, vec.len() - 1)].as_bytes(),
-                None,
+                config,
+                handle,
+                false,
             );
         } else if self.start < 0 {
             for word in vec[end + 1..=std::cmp::min(start, vec.len() - 1)]
                 .iter()
                 .rev()
             {
-                Choice::write_bytes(
-                    handle,
-                    word.as_bytes(),
-                    Some(config.opt.output_field_separator),
-                );
+                Choice::write_bytes(word.as_bytes(), config, handle, true);
             }
-            Choice::write_bytes(handle, vec[end].as_bytes(), None);
+            Choice::write_bytes(vec[end].as_bytes(), config, handle, false);
         }
     }
 
     fn write_bytes<WriterType: Write>(
-        handle: &mut BufWriter<WriterType>,
         b: &[u8],
-        output_field_separator: Option<char>,
+        config: &Config,
+        handle: &mut BufWriter<WriterType>,
+        print_separator: bool,
     ) {
         let num_bytes_written = match handle.write(b) {
             Ok(x) => x,
@@ -152,16 +139,11 @@ impl Choice {
                 0
             }
         };
-        match output_field_separator {
-            Some(s) => {
-                if num_bytes_written > 0 {
-                    match handle.write(&[s as u8]) {
-                        Ok(_) => (),
-                        Err(e) => eprintln!("Failed to write to output: {}", e),
-                    }
-                }
+        if num_bytes_written > 0 && print_separator {
+            match handle.write(&config.output_separator) {
+                Ok(_) => (),
+                Err(e) => eprintln!("Failed to write to output: {}", e),
             }
-            None => (),
         };
     }
 
@@ -623,6 +605,31 @@ mod tests {
         }
 
         #[test]
+        fn print_1_and_3_with_output_field_separator() {
+            let config = Config::from_iter(vec!["choose", "1", "3", "-o", "#"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
+            handle.write(&config.output_separator).unwrap();
+            config.opt.choice[1].print_choice(&String::from("a b c d"), &config, &mut handle);
+            assert_eq!(String::from("b#d"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_2_to_4_with_output_field_separator() {
+            let config = Config::from_iter(vec!["choose", "2:4", "-o", "%"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(
+                &String::from("Lorem ipsum dolor sit amet, consectetur"),
+                &config,
+                &mut handle,
+            );
+            assert_eq!(
+                String::from("dolor%sit%amet,"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
         fn print_3_to_1_with_output_field_separator() {
             let config = Config::from_iter(vec!["choose", "3:1", "-o", "#"]);
             let mut handle = BufWriter::new(MockStdout::new());
@@ -642,6 +649,14 @@ mod tests {
                 String::from("a#b#c"),
                 MockStdout::str_from_buf_writer(handle)
             );
+        }
+
+        #[test]
+        fn print_0_to_2_with_empty_output_field_separator() {
+            let config = Config::from_iter(vec!["choose", "0:2", "-o", ""]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
+            assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
         }
     }
 

@@ -13,8 +13,8 @@ pub struct Opt {
     pub field_separator: Option<String>,
 
     /// Specify output field separator
-    #[structopt(short, long, default_value = " ")]
-    pub output_field_separator: char,
+    #[structopt(short, long, parse(from_str = Config::parse_output_field_separator))]
+    pub output_field_separator: Option<String>,
 
     /// Use non-greedy field separators
     #[structopt(short, long)]
