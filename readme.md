@@ -93,21 +93,26 @@ find instructions [here](https://www.rust-lang.org/tools/install).
 Then, to install:
 
 ```bash
-git clone https://github.com/theryangeary/choose.git
-cd choose
-cargo build --release
-install target/release/choose <DESTDIR>
+$ git clone https://github.com/theryangeary/choose.git
+$ cd choose
+$ cargo build --release
+$ install target/release/choose <DESTDIR>
 ```
 
 Just make sure DESTDIR is in your path.
 
 ### Installing From Package Managers
 
+Arch Linux:
+```
+$ yay -S choose-rust-git
+```
+
 Fedora/CentOS [COPR](https://copr.fedorainfracloud.org/coprs/atim/choose/):
 
 ```
-# dnf copr enable atim/choose
-# dnf install choose
+$ dnf copr enable atim/choose
+$ dnf install choose
 ```
 
 ### Benchmarking
