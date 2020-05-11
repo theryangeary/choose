@@ -1,7 +1,10 @@
 use std::convert::TryInto;
+use std::io::{BufWriter, Write};
+use std::iter::FromIterator;
 
 use crate::config::Config;
-use crate::io::{BufWriter, Write};
+use crate::writeable::Writeable;
+use crate::writer::WriteReceiver;
 
 #[derive(Debug)]
 pub struct Choice {
@@ -29,66 +32,132 @@ impl Choice {
         config: &Config,
         handle: &mut BufWriter<W>,
     ) {
-        let mut line_iter = config
-            .separator
-            .split(line)
-            .filter(|s| !s.is_empty() || config.opt.non_greedy);
+        if config.opt.character_wise {
+            let line_chars = line[0..line.len() - 1].chars();
+            self.print_choice_generic(line_chars, config, handle);
+        } else {
+            let line_iter = config
+                .separator
+                .split(line)
+                .filter(|s| !s.is_empty() || config.opt.non_greedy);
+            self.print_choice_generic(line_iter, config, handle);
+        }
+    }
 
+    pub fn is_reverse_range(&self) -> bool {
+        self.reversed
+    }
+
+    pub fn has_negative_index(&self) -> bool {
+        self.negative_index
+    }
+
+    fn print_choice_generic<W, T, I>(&self, mut iter: I, config: &Config, handle: &mut BufWriter<W>)
+    where
+        W: Write,
+        T: Writeable + Copy,
+        I: Iterator<Item = T>,
+    {
         if self.is_reverse_range() && !self.has_negative_index() {
-            if self.end > 0 {
-                line_iter.nth((self.end - 1).try_into().unwrap());
-            }
-
-            let mut stack = Vec::new();
-            for i in 0..=(self.start - self.end) {
-                match line_iter.next() {
-                    Some(s) => stack.push(s),
-                    None => break,
-                }
-
-                if self.start <= self.end + i {
-                    break;
-                }
-            }
-
-            let mut iter = stack.iter().rev().peekable();
-            loop {
-                match iter.next() {
-                    Some(s) => {
-                        Choice::write_bytes(s.as_bytes(), config, handle, iter.peek().is_some())
-                    }
-                    None => break,
-                }
-            }
+            self.print_choice_reverse(iter, config, handle);
         } else if self.has_negative_index() {
-            let vec = line_iter.collect::<Vec<&str>>();
-            self.print_negative_choice(vec, config, handle);
+            self.print_choice_negative(iter, config, handle);
         } else {
             if self.start > 0 {
-                line_iter.nth((self.start - 1).try_into().unwrap());
+                iter.nth((self.start - 1).try_into().unwrap());
+            }
+            let range = self.end.checked_sub(self.start).unwrap();
+            Choice::print_choice_loop_max_items(iter, config, handle, range);
+        }
+    }
+
+    fn print_choice_loop<W, T, I>(iter: I, config: &Config, handle: &mut BufWriter<W>)
+    where
+        W: Write,
+        T: Writeable + Copy,
+        I: Iterator<Item = T>,
+    {
+        Choice::print_choice_loop_max_items(iter, config, handle, isize::max_value());
+    }
+
+    fn print_choice_loop_max_items<W, T, I>(
+        iter: I,
+        config: &Config,
+        handle: &mut BufWriter<W>,
+        max_items: isize,
+    ) where
+        W: Write,
+        T: Writeable + Copy,
+        I: Iterator<Item = T>,
+    {
+        let mut peek_iter = iter.peekable();
+        for i in 0..=max_items {
+            match peek_iter.next() {
+                Some(s) => {
+                    handle.write_choice(s, config, peek_iter.peek().is_some() && i != max_items);
+                }
+                None => break,
+            };
+        }
+    }
+
+    fn print_choice_negative<W, T, I>(&self, iter: I, config: &Config, handle: &mut BufWriter<W>)
+    where
+        W: Write,
+        T: Writeable + Copy,
+        I: Iterator<Item = T>,
+    {
+        let vec = Vec::from_iter(iter);
+        let (start, end) = self.get_negative_start_end(&vec);
+
+        if end > start {
+            for word in vec[start..std::cmp::min(end, vec.len() - 1)].iter() {
+                handle.write_choice(*word, config, true);
+            }
+            handle.write_choice(vec[std::cmp::min(end, vec.len() - 1)], config, false);
+        } else if self.start < 0 {
+            for word in vec[end + 1..=std::cmp::min(start, vec.len() - 1)]
+                .iter()
+                .rev()
+            {
+                handle.write_choice(*word, config, true);
+            }
+            handle.write_choice(vec[end], config, false);
+        }
+    }
+
+    fn print_choice_reverse<W, T, I>(&self, mut iter: I, config: &Config, handle: &mut BufWriter<W>)
+    where
+        W: Write,
+        T: Writeable + Copy,
+        I: Iterator<Item = T>,
+    {
+        if self.end > 0 {
+            iter.nth((self.end - 1).try_into().unwrap());
+        }
+
+        let mut stack = Vec::new();
+        for i in 0..=(self.start - self.end) {
+            match iter.next() {
+                Some(s) => stack.push(s),
+                None => break,
             }
 
-            let mut peek_line_iter = line_iter.peekable();
-            for i in self.start..=self.end {
-                match peek_line_iter.next() {
-                    Some(s) => Choice::write_bytes(
-                        s.as_bytes(),
-                        config,
-                        handle,
-                        peek_line_iter.peek().is_some() && i != self.end,
-                    ),
-                    None => break,
-                };
+            if self.start <= self.end + i {
+                break;
+            }
+        }
+
+        let mut peek_iter = stack.iter().rev().peekable();
+        loop {
+            match peek_iter.next() {
+                Some(s) => handle.write_choice(*s, config, peek_iter.peek().is_some()),
+                None => break,
             }
         }
     }
 
-    fn print_negative_choice<W: Write>(
-        &self,
-        vec: Vec<&str>,
-        config: &Config,
-        handle: &mut BufWriter<W>,
-    ) {
+    fn get_negative_start_end<T>(&self, vec: &Vec<T>) -> (usize, usize) {
         let start = if self.start >= 0 {
             self.start.try_into().unwrap()
         } else {
@@ -105,58 +174,7 @@ impl Choice {
                 .unwrap()
         };
 
-        if end > start {
-            for word in vec[start..std::cmp::min(end, vec.len() - 1)].iter() {
-                Choice::write_bytes(word.as_bytes(), config, handle, true);
-            }
-            Choice::write_bytes(
-                vec[std::cmp::min(end, vec.len() - 1)].as_bytes(),
-                config,
-                handle,
-                false,
-            );
-        } else if self.start < 0 {
-            for word in vec[end + 1..=std::cmp::min(start, vec.len() - 1)]
-                .iter()
-                .rev()
-            {
-                Choice::write_bytes(word.as_bytes(), config, handle, true);
-            }
-            Choice::write_bytes(vec[end].as_bytes(), config, handle, false);
-        }
-    }
-
-    fn write_bytes<WriterType: Write>(
-        b: &[u8],
-        config: &Config,
-        handle: &mut BufWriter<WriterType>,
-        print_separator: bool,
-    ) {
-        let num_bytes_written = match handle.write(b) {
-            Ok(x) => x,
-            Err(e) => {
-                eprintln!("Failed to write to output: {}", e);
-                0
-            }
-        };
-        if num_bytes_written > 0 && print_separator {
-            Choice::write_separator(config, handle);
-        };
-    }
-
-    pub fn write_separator<W: Write>(config: &Config, handle: &mut BufWriter<W>) {
-        match handle.write(&config.output_separator) {
-            Ok(_) => (),
-            Err(e) => eprintln!("Failed to write to output: {}", e),
-        }
-    }
-
-    pub fn is_reverse_range(&self) -> bool {
-        self.reversed
-    }
-
-    pub fn has_negative_index(&self) -> bool {
-        self.negative_index
+        return (start, end);
     }
 }
 
@@ -661,6 +679,76 @@ mod tests {
             let mut handle = BufWriter::new(MockStdout::new());
             config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
             assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise() {
+            let config = Config::from_iter(vec!["choose", "0:2", "-c"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_2_to_end_character_wise() {
+            let config = Config::from_iter(vec!["choose", "2:", "-c"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(String::from("cd"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_start_to_2_character_wise() {
+            let config = Config::from_iter(vec!["choose", ":2", "-c"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_exclusive() {
+            let config = Config::from_iter(vec!["choose", "0:2", "-c", "-x"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(String::from("ab"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_with_output_delimeter() {
+            let config = Config::from_iter(vec!["choose", "0:2", "-c", "-o", ":"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(
+                String::from("a:b:c"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_after_end_character_wise() {
+            let config = Config::from_iter(vec!["choose", "0:9", "-c"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(
+                String::from("abcd"),
+                MockStdout::str_from_buf_writer(handle)
+            );
+        }
+
+        #[test]
+        fn print_2_to_0_character_wise() {
+            let config = Config::from_iter(vec!["choose", "2:0", "-c"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(String::from("cba"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_neg_2_to_end_character_wise() {
+            let config = Config::from_iter(vec!["choose", "-2:", "-c"]);
+            let mut handle = BufWriter::new(MockStdout::new());
+            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
+            assert_eq!(String::from("cd"), MockStdout::str_from_buf_writer(handle));
         }
     }
 

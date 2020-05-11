@@ -8,29 +8,33 @@ use crate::config::Config;
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
 #[structopt(setting = structopt::clap::AppSettings::AllowLeadingHyphen)]
 pub struct Opt {
-    /// Specify field separator other than whitespace, using Rust `regex` syntax
+    /// Choose fields by character number
     #[structopt(short, long)]
-    pub field_separator: Option<String>,
-
-    /// Specify output field separator
-    #[structopt(short, long, parse(from_str = Config::parse_output_field_separator))]
-    pub output_field_separator: Option<String>,
-
-    /// Use non-greedy field separators
-    #[structopt(short, long)]
-    pub non_greedy: bool,
-
-    /// Use exclusive ranges, similar to array indexing in many programming languages
-    #[structopt(short = "x", long)]
-    pub exclusive: bool,
+    pub character_wise: bool,
 
     /// Activate debug mode
     #[structopt(short, long)]
     pub debug: bool,
 
+    /// Use exclusive ranges, similar to array indexing in many programming languages
+    #[structopt(short = "x", long)]
+    pub exclusive: bool,
+
+    /// Specify field separator other than whitespace, using Rust `regex` syntax
+    #[structopt(short, long)]
+    pub field_separator: Option<String>,
+
     /// Input file
     #[structopt(short, long, parse(from_os_str))]
     pub input: Option<PathBuf>,
+
+    /// Use non-greedy field separators
+    #[structopt(short, long)]
+    pub non_greedy: bool,
+
+    /// Specify output field separator
+    #[structopt(short, long, parse(from_str = Config::parse_output_field_separator))]
+    pub output_field_separator: Option<String>,
 
     /// Fields to print. Either x, x:, :y, or x:y, where x and y are integers, colons indicate a
     /// range, and an empty field on either side of the colon continues to the beginning or end of

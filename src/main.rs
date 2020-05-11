@@ -10,8 +10,11 @@ mod choice;
 mod config;
 mod opt;
 mod reader;
+mod writeable;
+mod writer;
 use config::Config;
 use opt::Opt;
+use writer::WriteReceiver;
 
 fn main() {
     let opt = Opt::from_args();
@@ -43,7 +46,7 @@ fn main() {
                 while let Some(choice) = choice_iter.next() {
                     choice.print_choice(&l, &config, &mut handle);
                     if choice_iter.peek().is_some() {
-                        choice::Choice::write_separator(&config, &mut handle);
+                        handle.write_separator(&config);
                     }
                 }
                 match handle.write(b"\n") {

@@ -51,9 +51,15 @@ impl Config {
             }
         };
 
-        let output_separator = match opt.output_field_separator.clone() {
-            Some(s) => s.into_boxed_str().into_boxed_bytes(),
-            None => Box::new([0x20; 1]),
+        let output_separator = match opt.character_wise {
+            false => match opt.output_field_separator.clone() {
+                Some(s) => s.into_boxed_str().into_boxed_bytes(),
+                None => Box::new([0x20; 1]),
+            },
+            true => match opt.output_field_separator.clone() {
+                Some(s) => s.into_boxed_str().into_boxed_bytes(),
+                None => Box::new([]),
+            },
         };
 
         Config {
