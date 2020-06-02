@@ -1,6 +1,6 @@
 [package]
 name = "choose"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Ryan Geary <rtgnj42@gmail.com>"]
 edition = "2018"
 
