@@ -39,20 +39,26 @@ necessary.
 
 ```
 $ choose --help
-choose 0.1.4
+choose 1.1.1
 `choose` sections from each line of files
 
 USAGE:
     choose [FLAGS] [OPTIONS] <choice>...
 
 FLAGS:
-    -x, --exclusive    Use exclusive ranges, similar to array indexing in many programming languages
-    -h, --help         Prints help information
-    -V, --version      Prints version information
+    -c, --character-wise    Choose fields by character number
+    -d, --debug             Activate debug mode
+    -x, --exclusive         Use exclusive ranges, similar to array indexing in many programming languages
+    -h, --help              Prints help information
+    -n, --non-greedy        Use non-greedy field separators
+    -V, --version           Prints version information
 
 OPTIONS:
-    -f, --field-separator <field-separator>    Specify field separator other than whitespace, using Rust `regex` syntax
-    -i, --input <input>                        Input file
+    -f, --field-separator <field-separator>
+            Specify field separator other than whitespace, using Rust `regex` syntax
+
+    -i, --input <input>                                      Input file
+    -o, --output-field-separator <output-field-separator>    Specify output field separator
 
 ARGS:
     <choice>...    Fields to print. Either x, x:, :y, or x:y, where x and y are integers, colons indicate a range,
