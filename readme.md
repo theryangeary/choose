@@ -35,6 +35,10 @@ rather a simple and intuitive tool to reach for when the basics of `awk` or
 `cut` will do, but the overhead of getting them to behave should not be
 necessary.
 
+## Contributing
+
+Please see our guidelines in [contributing.md](contributing.md).
+
 ## Usage
 
 ```
