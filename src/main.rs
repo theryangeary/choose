@@ -8,7 +8,10 @@ extern crate lazy_static;
 
 mod choice;
 mod config;
+mod errors;
 mod opt;
+mod parse;
+mod parse_error;
 mod reader;
 mod writeable;
 mod writer;
@@ -42,7 +45,7 @@ fn main() {
     while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
-                let choice_iter = &mut config.opt.choice.iter().peekable();
+                let choice_iter = &mut config.opt.choices.iter().peekable();
                 while let Some(choice) = choice_iter.next() {
                     choice.print_choice(&l, &config, &mut handle);
                     if choice_iter.peek().is_some() {

@@ -43,11 +43,11 @@ Please see our guidelines in [contributing.md](contributing.md).
 
 ```
 $ choose --help
-choose 1.1.1
+choose 1.1.2
 `choose` sections from each line of files
 
 USAGE:
-    choose [FLAGS] [OPTIONS] <choice>...
+    choose [FLAGS] [OPTIONS] <choices>...
 
 FLAGS:
     -c, --character-wise    Choose fields by character number
@@ -65,8 +65,10 @@ OPTIONS:
     -o, --output-field-separator <output-field-separator>    Specify output field separator
 
 ARGS:
-    <choice>...    Fields to print. Either x, x:, :y, or x:y, where x and y are integers, colons indicate a range,
-                   and an empty field on either side of the colon continues to the beginning or end of the line.
+    <choices>...    Fields to print. Either a, a:b, a..b, or a..=b, where a and b are integers. The beginning or end
+                    of a range can be omitted, resulting in including the beginning or end of the line,
+                    respectively. a:b is inclusive of b (unless overridden by -x). a..b is exclusive of b and a..=b
+                    is inclusive of b
 ```
 
 ### Examples
