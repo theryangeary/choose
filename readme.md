@@ -1,6 +1,6 @@
 # Choose
 
-This is `choose`, a human-friendly and fast alternative to `awk` and `cut`
+This is `choose`, a human-friendly and fast alternative to `cut` and (sometimes) `awk`
 
 [![`choose` demo](https://asciinema.org/a/315932.png)](https://asciinema.org/a/315932?autoplay=1)
 
@@ -108,6 +108,12 @@ $ install target/release/choose <DESTDIR>
 Just make sure DESTDIR is in your path.
 
 ### Installing From Package Managers
+
+Cargo:
+
+```
+$ cargo install choose
+```
 
 Arch Linux:
 ```
