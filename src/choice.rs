@@ -10,17 +10,27 @@ use crate::writer::WriteReceiver;
 pub struct Choice {
     pub start: isize,
     pub end: isize,
+    pub kind: ChoiceKind,
     negative_index: bool,
     reversed: bool,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ChoiceKind {
+    Single,
+    RustExclusiveRange,
+    RustInclusiveRange,
+    ColonRange,
+}
+
 impl Choice {
-    pub fn new(start: isize, end: isize) -> Self {
+    pub fn new(start: isize, end: isize, kind: ChoiceKind) -> Self {
         let negative_index = start < 0 || end < 0;
-        let reversed = end < start;
+        let reversed = end < start && !(start >= 0 && end < 0);
         Choice {
             start,
             end,
+            kind,
             negative_index,
             reversed,
         }
@@ -236,35 +246,26 @@ mod tests {
     mod print_choice_tests {
         use super::*;
 
-        #[test]
-        fn print_0() {
-            let config = Config::from_iter(vec!["choose", "0"]);
+        fn test_fn(vec: Vec<&str>, input: &str, output: &str) {
+            let config = Config::from_iter(vec);
             let mut handle = BufWriter::new(MockStdout::new());
 
-            config.opt.choice[0].print_choice(
-                &String::from("rust is pretty cool"),
-                &config,
-                &mut handle,
-            );
+            config.opt.choices[0].print_choice(&String::from(input), &config, &mut handle);
 
             assert_eq!(
-                String::from("rust"),
+                String::from(output),
                 MockStdout::str_from_buf_writer(handle)
             );
         }
 
         #[test]
+        fn print_0() {
+            test_fn(vec!["choose", "0"], "rust is pretty cool", "rust");
+        }
+
+        #[test]
         fn print_after_end() {
-            let config = Config::from_iter(vec!["choose", "10"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-
-            config.opt.choice[0].print_choice(
-                &String::from("rust is pretty cool"),
-                &config,
-                &mut handle,
-            );
-
-            assert_eq!(String::new(), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "10"], "rust is pretty cool", "");
         }
 
         #[test]
@@ -273,7 +274,7 @@ mod tests {
             let mut handle = BufWriter::new(MockStdout::new());
             let mut handle1 = BufWriter::new(MockStdout::new());
 
-            config.opt.choice[0].print_choice(
+            config.opt.choices[0].print_choice(
                 &String::from("rust is pretty cool"),
                 &config,
                 &mut handle,
@@ -284,7 +285,7 @@ mod tests {
                 MockStdout::str_from_buf_writer(handle)
             );
 
-            config.opt.choice[1].print_choice(
+            config.opt.choices[1].print_choice(
                 &String::from("rust is pretty cool"),
                 &config,
                 &mut handle1,
@@ -295,460 +296,780 @@ mod tests {
 
         #[test]
         fn print_1_to_3_exclusive() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-x"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust is pretty cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("is pretty"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3", "-x"],
+                "rust is pretty cool",
+                "is pretty",
             );
         }
 
         #[test]
         fn print_1_to_3() {
-            let config = Config::from_iter(vec!["choose", "1:3"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust is pretty cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("is pretty cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3"],
+                "rust is pretty cool",
+                "is pretty cool",
             );
         }
 
         #[test]
         fn print_1_to_3_separated_by_hashtag() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust#is#pretty#cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("is pretty cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3", "-f", "#"],
+                "rust#is#pretty#cool",
+                "is pretty cool",
             );
         }
 
         #[test]
         fn print_1_to_3_separated_by_varying_multiple_hashtag_exclusive() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#", "-x"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust##is###pretty####cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("is pretty"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3", "-f", "#", "-x"],
+                "rust##is###pretty####cool",
+                "is pretty",
             );
         }
 
         #[test]
         fn print_1_to_3_separated_by_varying_multiple_hashtag() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust##is###pretty####cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("is pretty cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3", "-f", "#"],
+                "rust##is###pretty####cool",
+                "is pretty cool",
             );
         }
 
         #[test]
         fn print_1_to_3_separated_by_regex_group_vowels_exclusive() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "[aeiou]", "-x"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("the quick brown fox jumped over the lazy dog"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from(" q ck br"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3", "-f", "[aeiou]", "-x"],
+                "the quick brown fox jumped over the lazy dog",
+                " q ck br",
             );
         }
 
         #[test]
         fn print_1_to_3_separated_by_regex_group_vowels() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "[aeiou]"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("the quick brown fox jumped over the lazy dog"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from(" q ck br wn f"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:3", "-f", "[aeiou]"],
+                "the quick brown fox jumped over the lazy dog",
+                " q ck br wn f",
             );
         }
 
         #[test]
         fn print_3_to_1() {
-            let config = Config::from_iter(vec!["choose", "3:1"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("pretty is lang"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "3:1"],
+                "rust lang is pretty darn cool",
+                "pretty is lang",
             );
         }
 
         #[test]
         fn print_3_to_1_exclusive() {
-            let config = Config::from_iter(vec!["choose", "3:1", "-x"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("is lang"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "3:1", "-x"],
+                "rust lang is pretty darn cool",
+                "is lang",
             );
         }
 
         #[test]
         fn print_1_to_3_nonexistant_field_separator() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-f", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
+            test_fn(
+                vec!["choose", "1:3", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "",
             );
-            assert_eq!(String::from(""), MockStdout::str_from_buf_writer(handle));
         }
 
         #[test]
         fn print_0_nonexistant_field_separator() {
-            let config = Config::from_iter(vec!["choose", "0", "-f", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("rust lang is pretty darn cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "0", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "rust lang is pretty darn cool",
             );
         }
 
         #[test]
         fn print_0_to_3_nonexistant_field_separator() {
-            let config = Config::from_iter(vec!["choose", "0:3", "-f", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("rust lang is pretty darn cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "0:3", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "rust lang is pretty darn cool",
             );
         }
 
         #[test]
         fn print_0_with_preceding_separator() {
-            let config = Config::from_iter(vec!["choose", "0"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("   rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("rust"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "0"],
+                "   rust lang is pretty darn cool",
+                "rust",
             );
         }
 
         #[test]
         fn print_neg3_to_neg1() {
-            let config = Config::from_iter(vec!["choose", "-3:-1"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("pretty darn cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "-3:-1"],
+                "rust lang is pretty darn cool",
+                "pretty darn cool",
             );
         }
 
         #[test]
         fn print_neg1_to_neg3() {
-            let config = Config::from_iter(vec!["choose", "-1:-3"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("cool darn pretty"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "-1:-3"],
+                "rust lang is pretty darn cool",
+                "cool darn pretty",
             );
         }
 
         #[test]
         fn print_neg2_to_end() {
-            let config = Config::from_iter(vec!["choose", "-2:"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("darn cool"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "-2:"],
+                "rust lang is pretty darn cool",
+                "darn cool",
             );
         }
 
         #[test]
         fn print_start_to_neg3() {
-            let config = Config::from_iter(vec!["choose", ":-3"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("rust lang is pretty"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", ":-3"],
+                "rust lang is pretty darn cool",
+                "rust lang is pretty",
             );
         }
 
         #[test]
         fn print_1_to_neg3() {
-            let config = Config::from_iter(vec!["choose", "1:-3"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("lang is pretty"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "1:-3"],
+                "rust lang is pretty darn cool",
+                "lang is pretty",
             );
         }
 
         #[test]
         fn print_5_to_neg3_empty() {
-            let config = Config::from_iter(vec!["choose", "5:-3"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("rust lang is pretty darn cool"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(String::from(""), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "5:-3"], "rust lang is pretty darn cool", "");
         }
 
         #[test]
         fn print_0_to_2_greedy() {
-            let config = Config::from_iter(vec!["choose", "0:2", "-f", ":"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
-            assert_eq!(
-                String::from("a b c"),
-                MockStdout::str_from_buf_writer(handle)
-            );
+            test_fn(vec!["choose", "0:2", "-f", ":"], "a:b::c:::d", "a b c");
         }
 
         #[test]
         fn print_0_to_2_non_greedy() {
-            let config = Config::from_iter(vec!["choose", "0:2", "-n", "-f", ":"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
-            assert_eq!(String::from("a b"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "0:2", "-n", "-f", ":"], "a:b::c:::d", "a b");
         }
 
         #[test]
         fn print_2_to_neg_1_non_greedy_negative() {
-            let config = Config::from_iter(vec!["choose", "2:-1", "-n", "-f", ":"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
-            assert_eq!(String::from("c d"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "2:-1", "-n", "-f", ":"], "a:b::c:::d", "c d");
         }
 
         #[test]
         fn print_2_to_0_non_greedy_reversed() {
-            let config = Config::from_iter(vec!["choose", "2:0", "-n", "-f", ":"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
-            assert_eq!(String::from("b a"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "2:0", "-n", "-f", ":"], "a:b::c:::d", "b a");
         }
 
         #[test]
         fn print_neg_1_to_neg_3_non_greedy_negative_reversed() {
-            let config = Config::from_iter(vec!["choose", "-1:-3", "-n", "-f", ":"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a:b::c:::d"), &config, &mut handle);
-            assert_eq!(String::from("d"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "-1:-3", "-n", "-f", ":"], "a:b::c:::d", "d");
         }
 
         #[test]
         fn print_1_to_3_with_output_field_separator() {
-            let config = Config::from_iter(vec!["choose", "1:3", "-o", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
-            assert_eq!(
-                String::from("b#c#d"),
-                MockStdout::str_from_buf_writer(handle)
-            );
+            test_fn(vec!["choose", "1:3", "-o", "#"], "a b c d", "b#c#d");
         }
 
         #[test]
         fn print_1_and_3_with_output_field_separator() {
-            let config = Config::from_iter(vec!["choose", "1", "3", "-o", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
-            handle.write(&config.output_separator).unwrap();
-            config.opt.choice[1].print_choice(&String::from("a b c d"), &config, &mut handle);
-            assert_eq!(String::from("b#d"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "1", "3", "-o", "#"], "a b c d", "b");
         }
 
         #[test]
         fn print_2_to_4_with_output_field_separator() {
-            let config = Config::from_iter(vec!["choose", "2:4", "-o", "%"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(
-                &String::from("Lorem ipsum dolor sit amet, consectetur"),
-                &config,
-                &mut handle,
-            );
-            assert_eq!(
-                String::from("dolor%sit%amet,"),
-                MockStdout::str_from_buf_writer(handle)
+            test_fn(
+                vec!["choose", "2:4", "-o", "%"],
+                "Lorem ipsum dolor sit amet, consectetur",
+                "dolor%sit%amet,",
             );
         }
 
         #[test]
         fn print_3_to_1_with_output_field_separator() {
-            let config = Config::from_iter(vec!["choose", "3:1", "-o", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
-            assert_eq!(
-                String::from("d#c#b"),
-                MockStdout::str_from_buf_writer(handle)
-            );
+            test_fn(vec!["choose", "3:1", "-o", "#"], "a b c d", "d#c#b");
         }
 
         #[test]
         fn print_0_to_neg_2_with_output_field_separator() {
-            let config = Config::from_iter(vec!["choose", "0:-2", "-o", "#"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
-            assert_eq!(
-                String::from("a#b#c"),
-                MockStdout::str_from_buf_writer(handle)
-            );
+            test_fn(vec!["choose", "0:-2", "-o", "#"], "a b c d", "a#b#c");
         }
 
         #[test]
         fn print_0_to_2_with_empty_output_field_separator() {
-            let config = Config::from_iter(vec!["choose", "0:2", "-o", ""]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("a b c d"), &config, &mut handle);
-            assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "0:2", "-o", ""], "a b c d", "abc");
         }
 
         #[test]
         fn print_0_to_2_character_wise() {
-            let config = Config::from_iter(vec!["choose", "0:2", "-c"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "0:2", "-c"], "abcd\n", "abc");
         }
 
         #[test]
         fn print_2_to_end_character_wise() {
-            let config = Config::from_iter(vec!["choose", "2:", "-c"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(String::from("cd"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "2:", "-c"], "abcd\n", "cd");
         }
 
         #[test]
         fn print_start_to_2_character_wise() {
-            let config = Config::from_iter(vec!["choose", ":2", "-c"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(String::from("abc"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", ":2", "-c"], "abcd\n", "abc");
         }
 
         #[test]
         fn print_0_to_2_character_wise_exclusive() {
-            let config = Config::from_iter(vec!["choose", "0:2", "-c", "-x"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(String::from("ab"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "0:2", "-c", "-x"], "abcd\n", "ab");
         }
 
         #[test]
         fn print_0_to_2_character_wise_with_output_delimeter() {
-            let config = Config::from_iter(vec!["choose", "0:2", "-c", "-o", ":"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(
-                String::from("a:b:c"),
-                MockStdout::str_from_buf_writer(handle)
-            );
+            test_fn(vec!["choose", "0:2", "-c", "-o", ":"], "abcd\n", "a:b:c");
         }
 
         #[test]
         fn print_after_end_character_wise() {
-            let config = Config::from_iter(vec!["choose", "0:9", "-c"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(
-                String::from("abcd"),
-                MockStdout::str_from_buf_writer(handle)
-            );
+            test_fn(vec!["choose", "0:9", "-c"], "abcd\n", "abcd");
         }
 
         #[test]
         fn print_2_to_0_character_wise() {
-            let config = Config::from_iter(vec!["choose", "2:0", "-c"]);
-            let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(String::from("cba"), MockStdout::str_from_buf_writer(handle));
+            test_fn(vec!["choose", "2:0", "-c"], "abcd\n", "cba");
         }
 
         #[test]
         fn print_neg_2_to_end_character_wise() {
-            let config = Config::from_iter(vec!["choose", "-2:", "-c"]);
+            test_fn(vec!["choose", "-2:", "-c"], "abcd\n", "cd");
+        }
+
+        #[test]
+        fn print_1_to_3_exclusive_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-x"],
+                "rust is pretty cool",
+                "is pretty cool",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3"],
+                "rust is pretty cool",
+                "is pretty cool",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_hashtag_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-f", "#"],
+                "rust#is#pretty#cool",
+                "is pretty cool",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_varying_multiple_hashtag_exclusive_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-f", "#", "-x"],
+                "rust##is###pretty####cool",
+                "is pretty cool",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_varying_multiple_hashtag_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-f", "#"],
+                "rust##is###pretty####cool",
+                "is pretty cool",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_regex_group_vowels_exclusive_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-f", "[aeiou]", "-x"],
+                "the quick brown fox jumped over the lazy dog",
+                " q ck br wn f",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_regex_group_vowels_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-f", "[aeiou]"],
+                "the quick brown fox jumped over the lazy dog",
+                " q ck br wn f",
+            );
+        }
+
+        #[test]
+        fn print_3_to_1_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "3..=1"],
+                "rust lang is pretty darn cool",
+                "pretty is lang",
+            );
+        }
+
+        #[test]
+        fn print_3_to_1_exclusive_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "3..=1", "-x"],
+                "rust lang is pretty darn cool",
+                "pretty is lang",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_nonexistant_field_separator_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=3", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "",
+            );
+        }
+
+        #[test]
+        fn print_0_to_3_nonexistant_field_separator_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "0..=3", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "rust lang is pretty darn cool",
+            );
+        }
+
+        #[test]
+        fn print_neg1_to_neg1_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "-3..=-1"],
+                "rust lang is pretty darn cool",
+                "pretty darn cool",
+            );
+        }
+
+        #[test]
+        fn print_neg1_to_neg3_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "-1..=-3"],
+                "rust lang is pretty darn cool",
+                "cool darn pretty",
+            );
+        }
+
+        #[test]
+        fn print_neg2_to_end_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "-2..="],
+                "rust lang is pretty darn cool",
+                "darn cool",
+            );
+        }
+
+        #[test]
+        fn print_start_to_neg3_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "..=-3"],
+                "rust lang is pretty darn cool",
+                "rust lang is pretty",
+            );
+        }
+
+        #[test]
+        fn print_1_to_neg3_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "1..=-3"],
+                "rust lang is pretty darn cool",
+                "lang is pretty",
+            );
+        }
+
+        #[test]
+        fn print_5_to_neg3_empty_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "5..=-3"],
+                "rust lang is pretty darn cool",
+                "",
+            );
+        }
+
+        #[test]
+        fn print_0_to_2_greedy_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=2", "-f", ":"], "a:b::c:::d", "a b c");
+        }
+
+        #[test]
+        fn print_0_to_2_non_greedy_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "0..=2", "-n", "-f", ":"],
+                "a:b::c:::d",
+                "a b",
+            );
+        }
+
+        #[test]
+        fn print_2_to_neg_1_non_greedy_negative_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "2..=-1", "-n", "-f", ":"],
+                "a:b::c:::d",
+                "c d",
+            );
+        }
+
+        #[test]
+        fn print_2_to_0_non_greedy_reversed_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "2..=0", "-n", "-f", ":"],
+                "a:b::c:::d",
+                "b a",
+            );
+        }
+
+        #[test]
+        fn print_neg_1_to_neg_3_non_greedy_negative_reversed_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "-1..=-3", "-n", "-f", ":"],
+                "a:b::c:::d",
+                "d",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_with_output_field_separator_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "1..=3", "-o", "#"], "a b c d", "b#c#d");
+        }
+
+        #[test]
+        fn print_1_and_3_with_output_field_separator_rust_syntax_inclusive() {
+            let config = Config::from_iter(vec!["choose", "1", "3", "-o", "#"]);
             let mut handle = BufWriter::new(MockStdout::new());
-            config.opt.choice[0].print_choice(&String::from("abcd\n"), &config, &mut handle);
-            assert_eq!(String::from("cd"), MockStdout::str_from_buf_writer(handle));
+            config.opt.choices[0].print_choice(&String::from("a b c d"), &config, &mut handle);
+            handle.write(&config.output_separator).unwrap();
+            config.opt.choices[1].print_choice(&String::from("a b c d"), &config, &mut handle);
+            assert_eq!(String::from("b#d"), MockStdout::str_from_buf_writer(handle));
+        }
+
+        #[test]
+        fn print_2_to_4_with_output_field_separator_rust_syntax_inclusive() {
+            test_fn(
+                vec!["choose", "2..=4", "-o", "%"],
+                "Lorem ipsum dolor sit amet, consectetur",
+                "dolor%sit%amet,",
+            );
+        }
+
+        #[test]
+        fn print_3_to_1_with_output_field_separator_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "3..=1", "-o", "#"], "a b c d", "d#c#b");
+        }
+
+        #[test]
+        fn print_0_to_neg_2_with_output_field_separator_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=-2", "-o", "#"], "a b c d", "a#b#c");
+        }
+
+        #[test]
+        fn print_0_to_2_with_empty_output_field_separator_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=2", "-o", ""], "a b c d", "abc");
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=2", "-c"], "abcd\n", "abc");
+        }
+
+        #[test]
+        fn print_2_to_end_character_wise_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "2..=", "-c"], "abcd\n", "cd");
+        }
+
+        #[test]
+        fn print_start_to_2_character_wise_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "..=2", "-c"], "abcd\n", "abc");
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_exclusive_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=2", "-c", "-x"], "abcd\n", "abc");
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_with_output_delimeter_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=2", "-c", "-o", ":"], "abcd\n", "a:b:c");
+        }
+
+        #[test]
+        fn print_after_end_character_wise_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "0..=9", "-c"], "abcd\n", "abcd");
+        }
+
+        #[test]
+        fn print_2_to_0_character_wise_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "2..=0", "-c"], "abcd\n", "cba");
+        }
+
+        #[test]
+        fn print_neg_2_to_end_character_wise_rust_syntax_inclusive() {
+            test_fn(vec!["choose", "-2..=", "-c"], "abcd\n", "cd");
+        }
+
+        #[test]
+        fn print_1_to_3_exclusive_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-x"],
+                "rust is pretty cool",
+                "is pretty",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "1..3"], "rust is pretty cool", "is pretty");
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_hashtag_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-f", "#"],
+                "rust#is#pretty#cool",
+                "is pretty",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_varying_multiple_hashtag_exclusive_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-f", "#", "-x"],
+                "rust##is###pretty####cool",
+                "is pretty",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_varying_multiple_hashtag_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-f", "#"],
+                "rust##is###pretty####cool",
+                "is pretty",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_regex_group_vowels_exclusive_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-f", "[aeiou]", "-x"],
+                "the quick brown fox jumped over the lazy dog",
+                " q ck br",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_separated_by_regex_group_vowels_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-f", "[aeiou]"],
+                "the quick brown fox jumped over the lazy dog",
+                " q ck br",
+            );
+        }
+
+        #[test]
+        fn print_3_to_1_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "3..1"],
+                "rust lang is pretty darn cool",
+                "is lang",
+            );
+        }
+
+        #[test]
+        fn print_3_to_1_exclusive_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "3..1", "-x"],
+                "rust lang is pretty darn cool",
+                "is lang",
+            );
+        }
+
+        #[test]
+        fn print_1_to_3_nonexistant_field_separator_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..3", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "",
+            );
+        }
+
+        #[test]
+        fn print_0_to_3_nonexistant_field_separator_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "0..3", "-f", "#"],
+                "rust lang is pretty darn cool",
+                "rust lang is pretty darn cool",
+            );
+        }
+
+        #[test]
+        fn print_neg3_to_neg1_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "-3..-1"],
+                "rust lang is pretty darn cool",
+                "pretty darn",
+            );
+        }
+
+        #[test]
+        fn print_neg1_to_neg3_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "-1..-3"],
+                "rust lang is pretty darn cool",
+                "darn pretty",
+            );
+        }
+
+        #[test]
+        fn print_neg2_to_end_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "-2.."],
+                "rust lang is pretty darn cool",
+                "darn cool",
+            );
+        }
+
+        #[test]
+        fn print_start_to_neg3_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "..-3"],
+                "rust lang is pretty darn cool",
+                "rust lang is",
+            );
+        }
+
+        #[test]
+        fn print_1_to_neg3_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "1..-3"],
+                "rust lang is pretty darn cool",
+                "lang is",
+            );
+        }
+
+        #[test]
+        fn print_5_to_neg3_empty_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "5..-3"], "rust lang is pretty darn cool", "");
+        }
+
+        #[test]
+        fn print_0_to_2_greedy_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..2", "-f", ":"], "a:b::c:::d", "a b");
+        }
+
+        #[test]
+        fn print_0_to_2_non_greedy_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..2", "-n", "-f", ":"], "a:b::c:::d", "a b");
+        }
+
+        #[test]
+        fn print_2_to_neg_1_non_greedy_negative_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "2..-1", "-n", "-f", ":"], "a:b::c:::d", "c");
+        }
+
+        #[test]
+        fn print_2_to_0_non_greedy_reversed_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "2..0", "-n", "-f", ":"], "a:b::c:::d", "b a");
+        }
+
+        #[test]
+        fn print_neg_1_to_neg_3_non_greedy_negative_reversed_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "-1..-3", "-n", "-f", ":"], "a:b::c:::d", "");
+        }
+
+        #[test]
+        fn print_1_to_3_with_output_field_separator_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "1..3", "-o", "#"], "a b c d", "b#c");
+        }
+
+        #[test]
+        fn print_2_to_4_with_output_field_separator_rust_syntax_exclusive() {
+            test_fn(
+                vec!["choose", "2..4", "-o", "%"],
+                "Lorem ipsum dolor sit amet, consectetur",
+                "dolor%sit",
+            );
+        }
+
+        #[test]
+        fn print_3_to_1_with_output_field_separator_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "3..1", "-o", "#"], "a b c d", "c#b");
+        }
+
+        #[test]
+        fn print_0_to_neg_2_with_output_field_separator_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..-2", "-o", "#"], "a b c d", "a#b");
+        }
+
+        #[test]
+        fn print_0_to_2_with_empty_output_field_separator_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..2", "-o", ""], "a b c d", "ab");
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..2", "-c"], "abcd\n", "ab");
+        }
+
+        #[test]
+        fn print_2_to_end_character_wise_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "2..", "-c"], "abcd\n", "cd");
+        }
+
+        #[test]
+        fn print_start_to_2_character_wise_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "..2", "-c"], "abcd\n", "ab");
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_exclusive_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..2", "-c", "-x"], "abcd\n", "ab");
+        }
+
+        #[test]
+        fn print_0_to_2_character_wise_with_output_delimeter_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..2", "-c", "-o", ":"], "abcd\n", "a:b");
+        }
+
+        #[test]
+        fn print_after_end_character_wise_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "0..9", "-c"], "abcd\n", "abcd");
+        }
+
+        #[test]
+        fn print_2_to_0_character_wise_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "2..0", "-c"], "abcd\n", "ba");
+        }
+
+        #[test]
+        fn print_neg_2_to_end_character_wise_rust_syntax_exclusive() {
+            test_fn(vec!["choose", "-2..", "-c"], "abcd\n", "cd");
         }
     }
 
@@ -758,31 +1079,31 @@ mod tests {
         #[test]
         fn is_field_reversed() {
             let config = Config::from_iter(vec!["choose", "0"]);
-            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+            assert_eq!(false, config.opt.choices[0].is_reverse_range());
         }
 
         #[test]
         fn is_field_range_no_start_reversed() {
             let config = Config::from_iter(vec!["choose", ":2"]);
-            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+            assert_eq!(false, config.opt.choices[0].is_reverse_range());
         }
 
         #[test]
         fn is_field_range_no_end_reversed() {
             let config = Config::from_iter(vec!["choose", "2:"]);
-            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+            assert_eq!(false, config.opt.choices[0].is_reverse_range());
         }
 
         #[test]
         fn is_field_range_no_start_or_end_reversed() {
             let config = Config::from_iter(vec!["choose", ":"]);
-            assert_eq!(false, config.opt.choice[0].is_reverse_range());
+            assert_eq!(false, config.opt.choices[0].is_reverse_range());
         }
 
         #[test]
         fn is_reversed_field_range_reversed() {
             let config = Config::from_iter(vec!["choose", "4:2"]);
-            assert_eq!(true, config.opt.choice[0].is_reverse_range());
+            assert_eq!(true, config.opt.choices[0].is_reverse_range());
         }
     }
 }

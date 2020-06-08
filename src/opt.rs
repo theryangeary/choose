@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 use crate::choice::Choice;
-use crate::config::Config;
+use crate::parse;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "choose", about = "`choose` sections from each line of files")]
@@ -33,12 +33,13 @@ pub struct Opt {
     pub non_greedy: bool,
 
     /// Specify output field separator
-    #[structopt(short, long, parse(from_str = Config::parse_output_field_separator))]
+    #[structopt(short, long, parse(from_str = parse::output_field_separator))]
     pub output_field_separator: Option<String>,
 
-    /// Fields to print. Either x, x:, :y, or x:y, where x and y are integers, colons indicate a
-    /// range, and an empty field on either side of the colon continues to the beginning or end of
-    /// the line.
-    #[structopt(required = true, min_values = 1, parse(try_from_str = Config::parse_choice))]
-    pub choice: Vec<Choice>,
+    /// Fields to print. Either a, a:b, a..b, or a..=b, where a and b are integers. The beginning
+    /// or end of a range can be omitted, resulting in including the beginning or end of the line,
+    /// respectively. a:b is inclusive of b (unless overridden by -x). a..b is
+    /// exclusive of b and a..=b is inclusive of b.
+    #[structopt(required = true, min_values = 1, parse(try_from_str = parse::choice))]
+    pub choices: Vec<Choice>,
 }
