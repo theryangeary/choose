@@ -83,7 +83,9 @@ choose 2:5              # print everything from the 2nd to 5th item on the line,
 choose -x 2:5           # print everything from the 2nd to 5th item on the line,
                         # exclusive of the 5th
 
-choose :3               # print the beginning of the line to the 3rd item,
+choose :3               # print the beginning of the line to the 3rd item
+
+choose -x :3            # print the beginning of the line to the 3rd item,
                         # exclusive
 
 choose 3:               # print the third item to the end of the line
