@@ -1071,6 +1071,11 @@ mod tests {
         fn print_neg_2_to_end_character_wise_rust_syntax_exclusive() {
             test_fn(vec!["choose", "-2..", "-c"], "abcd\n", "cd");
         }
+
+        #[test]
+        fn print_2_exclusive() {
+            test_fn(vec!["choose", "2", "-x"], "a b c d", "c");
+        }
     }
 
     mod is_reverse_range_tests {
