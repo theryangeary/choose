@@ -18,6 +18,7 @@ diff -w <(cargo run -- 1:3 -o % -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${t
 diff -w <(cargo run -- 1 3 -o % -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_1_3of%.txt")
 diff -w <(cargo run -- 1 3 -o '' -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_1_3of.txt")
 diff -w <(cargo run -- 3:6 -c -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_0_3_c.txt")
+diff -w <(cargo run -- 2 -x -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_2_x.txt")
 # add tests for different delimiters
 # add tests using piping
 
