@@ -43,7 +43,7 @@ Please see our guidelines in [contributing.md](contributing.md).
 
 ```
 $ choose --help
-choose 1.1.2
+choose 1.2.0
 `choose` sections from each line of files
 
 USAGE:
