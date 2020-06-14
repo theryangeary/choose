@@ -32,6 +32,10 @@ pub struct Opt {
     #[structopt(short, long)]
     pub non_greedy: bool,
 
+    /// Index from 1 instead of 0
+    #[structopt(long)]
+    pub one_indexed: bool,
+
     /// Specify output field separator
     #[structopt(short, long, parse(from_str = parse::output_field_separator))]
     pub output_field_separator: Option<String>,

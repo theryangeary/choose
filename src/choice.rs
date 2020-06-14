@@ -1076,6 +1076,45 @@ mod tests {
         fn print_2_exclusive() {
             test_fn(vec!["choose", "2", "-x"], "a b c d", "c");
         }
+
+        #[test]
+        fn print_2_one_indexed() {
+            test_fn(vec!["choose", "2", "--one-indexed"], "a b c d", "b");
+        }
+
+        #[test]
+        fn print_2_to_4_one_indexed() {
+            test_fn(vec!["choose", "2:4", "--one-indexed"], "a b c d", "b c d");
+        }
+
+        #[test]
+        fn print_2_to_end_one_indexed() {
+            test_fn(vec!["choose", "2:", "--one-indexed"], "a b c d", "b c d");
+        }
+
+        #[test]
+        fn print_start_to_2_one_indexed() {
+            test_fn(vec!["choose", ":2", "--one-indexed"], "a b c d", "a b");
+        }
+
+        #[test]
+        fn print_2_to_4_one_indexed_exclusive() {
+            test_fn(
+                vec!["choose", "2:4", "--one-indexed", "-x"],
+                "a b c d",
+                "b c",
+            );
+        }
+
+        #[test]
+        fn print_4_to_2_one_indexed() {
+            test_fn(vec!["choose", "4:2", "--one-indexed"], "a b c d", "d c b");
+        }
+
+        #[test]
+        fn print_neg_4_to_2_one_indexed() {
+            test_fn(vec!["choose", "-4:2", "--one-indexed"], "a b c d", "a b");
+        }
     }
 
     mod is_reverse_range_tests {

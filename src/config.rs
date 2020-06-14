@@ -22,6 +22,16 @@ impl Config {
                     choice.end = choice.end - 1;
                 }
             }
+
+            if opt.one_indexed {
+                if choice.start > 0 {
+                    choice.start -= 1;
+                }
+
+                if choice.end > 0 {
+                    choice.end -= 1;
+                }
+            }
         }
 
         let separator = match Regex::new(match &opt.field_separator {
