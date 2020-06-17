@@ -1115,6 +1115,15 @@ mod tests {
         fn print_neg_4_to_2_one_indexed() {
             test_fn(vec!["choose", "-4:2", "--one-indexed"], "a b c d", "a b");
         }
+
+        #[test]
+        fn print_2_to_4_newline_ofs() {
+            test_fn(
+                vec!["choose", "2:4", "-o", r#"\n"#],
+                "a b c d e f",
+                "c\nd\ne",
+            );
+        }
     }
 
     mod is_reverse_range_tests {

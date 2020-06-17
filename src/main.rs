@@ -9,6 +9,7 @@ extern crate lazy_static;
 mod choice;
 mod config;
 mod errors;
+mod escape;
 mod opt;
 mod parse;
 mod parse_error;
