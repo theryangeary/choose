@@ -2,7 +2,6 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 use crate::choice::Choice;
-use crate::escape;
 use crate::parse;
 
 #[derive(Debug, StructOpt)]
@@ -38,7 +37,7 @@ pub struct Opt {
     pub one_indexed: bool,
 
     /// Specify output field separator
-    #[structopt(short, long, parse(from_str = escape::process_escapes))]
+    #[structopt(short, long, parse(from_str = parse::output_field_separator))]
     pub output_field_separator: Option<String>,
 
     /// Fields to print. Either a, a:b, a..b, or a..=b, where a and b are integers. The beginning

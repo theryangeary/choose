@@ -30,6 +30,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "backslash"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35a89ea09f2c7f3c81711c0db7d389d86a9d66fa15a7067e6fd6dbef863ef786"
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -39,6 +45,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 name = "choose"
 version = "1.2.0"
 dependencies = [
+ "backslash",
  "lazy_static",
  "regex",
  "structopt",
