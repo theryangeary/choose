@@ -1,4 +1,4 @@
-pub trait Writeable {
+pub trait Writeable: Copy {
     fn to_byte_buf(&self) -> Box<[u8]>;
 }
 

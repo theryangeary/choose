@@ -1,5 +1,4 @@
 use std::convert::TryInto;
-use std::io::{BufWriter, Write};
 use std::iter::FromIterator;
 
 use crate::config::Config;
@@ -36,12 +35,7 @@ impl Choice {
         }
     }
 
-    pub fn print_choice<W: Write>(
-        &self,
-        line: &String,
-        config: &Config,
-        handle: &mut BufWriter<W>,
-    ) {
+    pub fn print_choice<W: WriteReceiver>(&self, line: &String, config: &Config, handle: &mut W) {
         if config.opt.character_wise {
             let line_chars = line[0..line.len() - 1].chars();
             self.print_choice_generic(line_chars, config, handle);
@@ -62,10 +56,10 @@ impl Choice {
         self.negative_index
     }
 
-    fn print_choice_generic<W, T, I>(&self, mut iter: I, config: &Config, handle: &mut BufWriter<W>)
+    fn print_choice_generic<W, T, I>(&self, mut iter: I, config: &Config, handle: &mut W)
     where
-        W: Write,
-        T: Writeable + Copy,
+        W: WriteReceiver,
+        T: Writeable,
         I: Iterator<Item = T>,
     {
         if self.is_reverse_range() && !self.has_negative_index() {
@@ -81,23 +75,14 @@ impl Choice {
         }
     }
 
-    fn print_choice_loop<W, T, I>(iter: I, config: &Config, handle: &mut BufWriter<W>)
-    where
-        W: Write,
-        T: Writeable + Copy,
-        I: Iterator<Item = T>,
-    {
-        Choice::print_choice_loop_max_items(iter, config, handle, isize::max_value());
-    }
-
     fn print_choice_loop_max_items<W, T, I>(
         iter: I,
         config: &Config,
-        handle: &mut BufWriter<W>,
+        handle: &mut W,
         max_items: isize,
     ) where
-        W: Write,
-        T: Writeable + Copy,
+        W: WriteReceiver,
+        T: Writeable,
         I: Iterator<Item = T>,
     {
         let mut peek_iter = iter.peekable();
@@ -111,10 +96,10 @@ impl Choice {
         }
     }
 
-    fn print_choice_negative<W, T, I>(&self, iter: I, config: &Config, handle: &mut BufWriter<W>)
+    fn print_choice_negative<W, T, I>(&self, iter: I, config: &Config, handle: &mut W)
     where
-        W: Write,
-        T: Writeable + Copy,
+        W: WriteReceiver,
+        T: Writeable,
         I: Iterator<Item = T>,
     {
         let vec = Vec::from_iter(iter);
@@ -136,10 +121,10 @@ impl Choice {
         }
     }
 
-    fn print_choice_reverse<W, T, I>(&self, mut iter: I, config: &Config, handle: &mut BufWriter<W>)
+    fn print_choice_reverse<W, T, I>(&self, mut iter: I, config: &Config, handle: &mut W)
     where
-        W: Write,
-        T: Writeable + Copy,
+        W: WriteReceiver,
+        T: Writeable,
         I: Iterator<Item = T>,
     {
         if self.end > 0 {
