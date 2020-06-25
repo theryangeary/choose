@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, Read, Write};
+use std::io::{self, Read};
 use std::process;
 use structopt::StructOpt;
 
@@ -22,6 +22,16 @@ use writer::WriteReceiver;
 
 fn main() {
     let opt = Opt::from_args();
+
+    let stdout = io::stdout();
+    let lock = stdout.lock();
+    match opt.input {
+        Some(_) => main_generic(opt, &mut io::BufWriter::new(lock)),
+        None => main_generic(opt, &mut io::LineWriter::new(lock)),
+    }
+}
+
+fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) {
     let config = Config::new(opt);
 
     let read = match &config.opt.input {
@@ -39,16 +49,12 @@ fn main() {
     let mut reader = reader::BufReader::new(read);
     let mut buffer = String::new();
 
-    let stdout = io::stdout();
-    let lock = stdout.lock();
-    let mut handle = io::BufWriter::new(lock);
-
     while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
                 let choice_iter = &mut config.opt.choices.iter().peekable();
                 while let Some(choice) = choice_iter.next() {
-                    choice.print_choice(&l, &config, &mut handle);
+                    choice.print_choice(&l, &config, handle);
                     if choice_iter.peek().is_some() {
                         handle.write_separator(&config);
                     }

@@ -1,14 +1,9 @@
-use std::io::{BufWriter, Write};
+use std::io::{BufWriter, LineWriter, Write};
 
 use crate::config::Config;
 use crate::writeable::Writeable;
 
-pub trait WriteReceiver {
-    fn write_choice<Wa: Writeable>(&mut self, b: Wa, config: &Config, print_separator: bool);
-    fn write_separator(&mut self, config: &Config);
-}
-
-impl<W: Write> WriteReceiver for BufWriter<W> {
+pub trait WriteReceiver: Write {
     fn write_choice<Wa: Writeable>(&mut self, b: Wa, config: &Config, print_separator: bool) {
         let num_bytes_written = match self.write(&b.to_byte_buf()) {
             Ok(x) => x,
@@ -29,3 +24,7 @@ impl<W: Write> WriteReceiver for BufWriter<W> {
         }
     }
 }
+
+impl<W: Write> WriteReceiver for BufWriter<W> {}
+
+impl<W: Write> WriteReceiver for LineWriter<W> {}
