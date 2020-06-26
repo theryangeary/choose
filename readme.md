@@ -124,6 +124,7 @@ $ cargo install choose
 ```
 
 Arch Linux:
+
 ```
 $ yay -S choose-rust-git
 ```
@@ -133,6 +134,12 @@ Fedora/CentOS [COPR](https://copr.fedorainfracloud.org/coprs/atim/choose/):
 ```
 $ dnf copr enable atim/choose
 $ dnf install choose
+```
+
+Homebrew:
+
+```
+$ brew install choose-rust
 ```
 
 ### Benchmarking
