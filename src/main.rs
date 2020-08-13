@@ -52,13 +52,21 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) {
     while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
+                let l = if config.opt.character_wise || config.opt.field_separator.is_some() {
+                    &l[0..l.len() - 1]
+                } else {
+                    &l
+                };
+
                 let choice_iter = &mut config.opt.choices.iter().peekable();
+
                 while let Some(choice) = choice_iter.next() {
-                    choice.print_choice(&l, &config, handle);
+                    choice.print_choice(l, &config, handle);
                     if choice_iter.peek().is_some() {
                         handle.write_separator(&config);
                     }
                 }
+
                 match handle.write(b"\n") {
                     Ok(_) => (),
                     Err(e) => eprintln!("Failed to write to output: {}", e),

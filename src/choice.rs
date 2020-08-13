@@ -35,10 +35,9 @@ impl Choice {
         }
     }
 
-    pub fn print_choice<W: WriteReceiver>(&self, line: &String, config: &Config, handle: &mut W) {
+    pub fn print_choice<W: WriteReceiver>(&self, line: &str, config: &Config, handle: &mut W) {
         if config.opt.character_wise {
-            let line_chars = line[0..line.len() - 1].chars();
-            self.print_choice_generic(line_chars, config, handle);
+            self.print_choice_generic(line.chars(), config, handle);
         } else {
             let line_iter = config
                 .separator
@@ -507,42 +506,42 @@ mod tests {
 
         #[test]
         fn print_0_to_2_character_wise() {
-            test_fn(vec!["choose", "0:2", "-c"], "abcd\n", "abc");
+            test_fn(vec!["choose", "0:2", "-c"], "abcd", "abc");
         }
 
         #[test]
         fn print_2_to_end_character_wise() {
-            test_fn(vec!["choose", "2:", "-c"], "abcd\n", "cd");
+            test_fn(vec!["choose", "2:", "-c"], "abcd", "cd");
         }
 
         #[test]
         fn print_start_to_2_character_wise() {
-            test_fn(vec!["choose", ":2", "-c"], "abcd\n", "abc");
+            test_fn(vec!["choose", ":2", "-c"], "abcd", "abc");
         }
 
         #[test]
         fn print_0_to_2_character_wise_exclusive() {
-            test_fn(vec!["choose", "0:2", "-c", "-x"], "abcd\n", "ab");
+            test_fn(vec!["choose", "0:2", "-c", "-x"], "abcd", "ab");
         }
 
         #[test]
         fn print_0_to_2_character_wise_with_output_delimeter() {
-            test_fn(vec!["choose", "0:2", "-c", "-o", ":"], "abcd\n", "a:b:c");
+            test_fn(vec!["choose", "0:2", "-c", "-o", ":"], "abcd", "a:b:c");
         }
 
         #[test]
         fn print_after_end_character_wise() {
-            test_fn(vec!["choose", "0:9", "-c"], "abcd\n", "abcd");
+            test_fn(vec!["choose", "0:9", "-c"], "abcd", "abcd");
         }
 
         #[test]
         fn print_2_to_0_character_wise() {
-            test_fn(vec!["choose", "2:0", "-c"], "abcd\n", "cba");
+            test_fn(vec!["choose", "2:0", "-c"], "abcd", "cba");
         }
 
         #[test]
         fn print_neg_2_to_end_character_wise() {
-            test_fn(vec!["choose", "-2:", "-c"], "abcd\n", "cd");
+            test_fn(vec!["choose", "-2:", "-c"], "abcd", "cd");
         }
 
         #[test]
@@ -780,42 +779,42 @@ mod tests {
 
         #[test]
         fn print_0_to_2_character_wise_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "0..=2", "-c"], "abcd\n", "abc");
+            test_fn(vec!["choose", "0..=2", "-c"], "abcd", "abc");
         }
 
         #[test]
         fn print_2_to_end_character_wise_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "2..=", "-c"], "abcd\n", "cd");
+            test_fn(vec!["choose", "2..=", "-c"], "abcd", "cd");
         }
 
         #[test]
         fn print_start_to_2_character_wise_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "..=2", "-c"], "abcd\n", "abc");
+            test_fn(vec!["choose", "..=2", "-c"], "abcd", "abc");
         }
 
         #[test]
         fn print_0_to_2_character_wise_exclusive_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "0..=2", "-c", "-x"], "abcd\n", "abc");
+            test_fn(vec!["choose", "0..=2", "-c", "-x"], "abcd", "abc");
         }
 
         #[test]
         fn print_0_to_2_character_wise_with_output_delimeter_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "0..=2", "-c", "-o", ":"], "abcd\n", "a:b:c");
+            test_fn(vec!["choose", "0..=2", "-c", "-o", ":"], "abcd", "a:b:c");
         }
 
         #[test]
         fn print_after_end_character_wise_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "0..=9", "-c"], "abcd\n", "abcd");
+            test_fn(vec!["choose", "0..=9", "-c"], "abcd", "abcd");
         }
 
         #[test]
         fn print_2_to_0_character_wise_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "2..=0", "-c"], "abcd\n", "cba");
+            test_fn(vec!["choose", "2..=0", "-c"], "abcd", "cba");
         }
 
         #[test]
         fn print_neg_2_to_end_character_wise_rust_syntax_inclusive() {
-            test_fn(vec!["choose", "-2..=", "-c"], "abcd\n", "cd");
+            test_fn(vec!["choose", "-2..=", "-c"], "abcd", "cd");
         }
 
         #[test]
@@ -1019,42 +1018,42 @@ mod tests {
 
         #[test]
         fn print_0_to_2_character_wise_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "0..2", "-c"], "abcd\n", "ab");
+            test_fn(vec!["choose", "0..2", "-c"], "abcd", "ab");
         }
 
         #[test]
         fn print_2_to_end_character_wise_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "2..", "-c"], "abcd\n", "cd");
+            test_fn(vec!["choose", "2..", "-c"], "abcd", "cd");
         }
 
         #[test]
         fn print_start_to_2_character_wise_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "..2", "-c"], "abcd\n", "ab");
+            test_fn(vec!["choose", "..2", "-c"], "abcd", "ab");
         }
 
         #[test]
         fn print_0_to_2_character_wise_exclusive_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "0..2", "-c", "-x"], "abcd\n", "ab");
+            test_fn(vec!["choose", "0..2", "-c", "-x"], "abcd", "ab");
         }
 
         #[test]
         fn print_0_to_2_character_wise_with_output_delimeter_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "0..2", "-c", "-o", ":"], "abcd\n", "a:b");
+            test_fn(vec!["choose", "0..2", "-c", "-o", ":"], "abcd", "a:b");
         }
 
         #[test]
         fn print_after_end_character_wise_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "0..9", "-c"], "abcd\n", "abcd");
+            test_fn(vec!["choose", "0..9", "-c"], "abcd", "abcd");
         }
 
         #[test]
         fn print_2_to_0_character_wise_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "2..0", "-c"], "abcd\n", "ba");
+            test_fn(vec!["choose", "2..0", "-c"], "abcd", "ba");
         }
 
         #[test]
         fn print_neg_2_to_end_character_wise_rust_syntax_exclusive() {
-            test_fn(vec!["choose", "-2..", "-c"], "abcd\n", "cd");
+            test_fn(vec!["choose", "-2..", "-c"], "abcd", "cd");
         }
 
         #[test]
