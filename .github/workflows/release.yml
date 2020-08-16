@@ -1,0 +1,49 @@
+name: Create Releases
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Check style
+      run: cargo fmt -- --check
+
+    - name: Build
+      run: cargo build --verbose --release
+
+    - name: Run tests
+      run: cargo test --verbose
+
+    - name: Create GitHub release
+      id: create-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: ''
+        draft: false
+        prerelease: false
+
+    - name: Upload binary to GitHub release
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: target/release/choose
+        asset_name: choose
+        asset_content_type: application/raw
+
+    - name: Create crates.io release
+      run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
