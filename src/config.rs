@@ -17,9 +17,9 @@ impl Config {
                 || choice.kind == ChoiceKind::RustExclusiveRange
             {
                 if choice.is_reverse_range() {
-                    choice.start = choice.start - 1;
+                    choice.start -= 1;
                 } else {
-                    choice.end = choice.end - 1;
+                    choice.end -= 1;
                 }
             }
 

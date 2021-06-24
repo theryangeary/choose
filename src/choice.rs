@@ -196,7 +196,7 @@ impl Choice {
                 .unwrap()
         };
 
-        return (start, end);
+        (start, end)
     }
 }
 
@@ -215,7 +215,7 @@ mod tests {
             I: IntoIterator,
             I::Item: Into<OsString> + Clone,
         {
-            return Config::new(Opt::from_iter(iter));
+            Config::new(Opt::from_iter(iter))
         }
     }
 

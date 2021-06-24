@@ -58,7 +58,7 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         }
     };
 
-    return Ok(Choice::new(start, end, kind));
+    Ok(Choice::new(start, end, kind))
 }
 
 pub fn output_field_separator(src: &str) -> String {
