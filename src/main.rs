@@ -25,13 +25,25 @@ fn main() {
 
     let stdout = io::stdout();
     let lock = stdout.lock();
-    match opt.input {
+    let exit_result = match opt.input {
         Some(_) => main_generic(opt, &mut io::BufWriter::new(lock)),
         None => main_generic(opt, &mut io::LineWriter::new(lock)),
+    };
+
+    match exit_result {
+        Ok(_) => (),
+        Err(e) => {
+            if e.kind() == io::ErrorKind::BrokenPipe {
+                // BrokenPipe means whoever is reading the output hung up, we should
+                // gracefully exit
+            } else {
+                eprintln!("Failed to write to output: {}", e)
+            }
+        }
     }
 }
 
-fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) {
+fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> io::Result<()> {
     let config = Config::new(opt);
 
     let read = match &config.opt.input {
@@ -61,18 +73,17 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) {
                 let choice_iter = &mut config.opt.choices.iter().peekable();
 
                 while let Some(choice) = choice_iter.next() {
-                    choice.print_choice(l, &config, handle);
+                    choice.print_choice(l, &config, handle)?;
                     if choice_iter.peek().is_some() {
-                        handle.write_separator(&config);
+                        handle.write_separator(&config)?;
                     }
                 }
 
-                match handle.write(b"\n") {
-                    Ok(_) => (),
-                    Err(e) => eprintln!("Failed to write to output: {}", e),
-                }
+                handle.write(b"\n").map(|_| ())?
             }
             Err(e) => println!("Failed to read line: {}", e),
         }
     }
+
+    Ok(())
 }
