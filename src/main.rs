@@ -69,7 +69,12 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) {
 
                 match handle.write(b"\n") {
                     Ok(_) => (),
-                    Err(e) => eprintln!("Failed to write to output: {}", e),
+                    Err(e) => {
+                        eprintln!("Failed to write to output: {}", e);
+                        if e.kind() == io::ErrorKind::BrokenPipe {
+                            process::exit(0)
+                        }
+                    }
                 }
             }
             Err(e) => println!("Failed to read line: {}", e),
