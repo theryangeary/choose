@@ -16,11 +16,19 @@ jobs:
     - name: Check style
       run: cargo fmt -- --check
 
-    - name: Build
-      run: cargo build --verbose --release
-
-    - name: Run tests
+    - name: Run unit tests
       run: cargo test --verbose
+
+    - name: Rust end-to-end test
+      run: test/e2e_test.sh
+
+    - name: Build x86_64-unknown-linux-gnu
+      run: cargo build --verbose --release --target x86_64-unknown-linux-gnu
+
+    - name: Build x86_64-unknown-linux-musl
+      run: |
+        rustup target add x86_64-unknown-linux-musl
+        cargo build --verbose --release --target x86_64-unknown-linux-musl
 
     - name: Create GitHub release
       id: create-release
@@ -35,14 +43,25 @@ jobs:
         prerelease: false
 
     - name: Upload binary to GitHub release
-      id: upload-release-asset
+      id: upload-x86_64-unknown-linux-gnu-release-asset
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: target/release/choose
-        asset_name: choose
+        asset_path: target/x86_64-unknown-linux-gnu/release/choose
+        asset_name: choose-x86_64-unknown-linux-gnu
+        asset_content_type: application/raw
+
+    - name: Upload musl binary to GitHub release
+      id: upload-x86_64-unknown-linux-musl-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: target/x86_64-unknown-linux-musl/release/choose
+        asset_name: choose-x86_64-unknown-linux-musl
         asset_content_type: application/raw
 
     - name: Create crates.io release

@@ -16,9 +16,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Check style
       run: cargo fmt -- --check
+
+    # this will report success even if there are warnings, and should be manually checked for now
+    - name: Lint
+      run: cargo clippy
+
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
+
+    - name: Run unit tests
       run: cargo test --verbose
+
+    - name: Run end-to-end tests
+      run: test/e2e_test.sh
