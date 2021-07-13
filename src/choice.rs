@@ -1,5 +1,4 @@
 use std::convert::TryInto;
-use std::iter::FromIterator;
 
 use crate::config::Config;
 use crate::writeable::Writeable;
@@ -121,7 +120,7 @@ impl Choice {
         T: Writeable,
         I: Iterator<Item = T>,
     {
-        let vec = Vec::from_iter(iter);
+        let vec = iter.collect::<Vec<_>>();
         let (start, end) = self.get_negative_start_end(&vec);
 
         if end > start {
@@ -170,20 +169,19 @@ impl Choice {
         }
 
         let mut peek_iter = stack.iter().rev().peekable();
-        loop {
-            match peek_iter.next() {
-                Some(s) => handle.write_choice(*s, config, peek_iter.peek().is_some())?,
-                None => break,
-            }
+        while let Some(s) = peek_iter.next() {
+            handle.write_choice(*s, config, peek_iter.peek().is_some())?;
         }
+
         Ok(())
     }
 
-    fn get_negative_start_end<T>(&self, vec: &Vec<T>) -> (usize, usize) {
+    fn get_negative_start_end<T>(&self, slice: &[T]) -> (usize, usize) {
         let start = if self.start >= 0 {
             self.start.try_into().unwrap()
         } else {
-            vec.len()
+            slice
+                .len()
                 .checked_sub(self.start.abs().try_into().unwrap())
                 .unwrap()
         };
@@ -191,7 +189,8 @@ impl Choice {
         let end = if self.end >= 0 {
             self.end.try_into().unwrap()
         } else {
-            vec.len()
+            slice
+                .len()
                 .checked_sub(self.end.abs().try_into().unwrap())
                 .unwrap()
         };
