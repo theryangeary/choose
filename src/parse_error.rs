@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub enum ParseError {
     ParseIntError(std::num::ParseIntError),
-    ParseRangeError(crate::errors::ParseRangeError),
+    ParseRangeError(crate::error::ParseRangeError),
 }
 
 impl ToString for ParseError {

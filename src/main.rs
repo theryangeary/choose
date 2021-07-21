@@ -8,16 +8,20 @@ extern crate lazy_static;
 
 mod choice;
 mod config;
-mod errors;
+mod error;
 mod escape;
 mod opt;
 mod parse;
 mod parse_error;
 mod reader;
+mod result;
 mod writeable;
 mod writer;
+
 use config::Config;
+use error::Error;
 use opt::Opt;
+use result::Result;
 use writer::WriteReceiver;
 
 fn main() {
@@ -32,18 +36,23 @@ fn main() {
 
     match exit_result {
         Ok(_) => (),
-        Err(e) => {
-            if e.kind() == io::ErrorKind::BrokenPipe {
-                // BrokenPipe means whoever is reading the output hung up, we should
-                // gracefully exit
-            } else {
-                eprintln!("Failed to write to output: {}", e)
+        Err(err) => {
+            match err {
+                Error::Io(e) => {
+                    if e.kind() == io::ErrorKind::BrokenPipe {
+                        // BrokenPipe means whoever is reading the output hung up, we should
+                        // gracefully exit
+                    } else {
+                        eprintln!("Failed to write to output: {}", e)
+                    }
+                }
+                e @ _ => eprintln!("Error: {}", e),
             }
         }
     }
 }
 
-fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> io::Result<()> {
+fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
     let config = Config::new(opt);
 
     let read = match &config.opt.input {
@@ -65,7 +74,7 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> io::Result<()> {
         match line {
             Ok(l) => {
                 let l = if config.opt.character_wise || config.opt.field_separator.is_some() {
-                    &l[0..l.len() - 1]
+                    &l[0..l.len().saturating_sub(1)]
                 } else {
                     &l
                 };

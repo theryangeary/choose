@@ -2,7 +2,7 @@ use backslash::escape_ascii;
 use regex::Regex;
 
 use crate::choice::{Choice, ChoiceKind};
-use crate::errors::ParseRangeError;
+use crate::error::ParseRangeError;
 use crate::parse_error::ParseError;
 
 lazy_static! {
