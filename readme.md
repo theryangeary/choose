@@ -142,6 +142,12 @@ Homebrew:
 $ brew install choose-rust
 ```
 
+MacPorts:
+
+```
+$ sudo port install choose
+```
+
 ### Benchmarking
 
 Benchmarking is performed using the [`bench` utility](https://github.com/Gabriel439/bench).
