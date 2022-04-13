@@ -6,15 +6,15 @@ orig_dir="$(pwd)"
 cd "$(git rev-parse --show-toplevel)"
 
 # basic functionality
-diff -w <(cargo run -- 0:1 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_0:1.txt")
+diff -w <(cargo run -- 0:1 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_0x1.txt")
 diff -w <(cargo run -- 0 3 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_0_3.txt")
-diff -w <(cargo run -- :1 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_:1.txt")
+diff -w <(cargo run -- :1 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_x1.txt")
 diff -w <(cargo run -- 9 3 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_9_3.txt")
 diff -w <(cargo run -- 9 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_9.txt")
 diff -w <(cargo run -- 12 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_12.txt")
-diff -w <(cargo run -- 4:2 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_4:2.txt")
-diff -w <(cargo run -- -4:-2 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_-4:-2.txt")
-diff -w <(cargo run -- 1:3 -o % -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_1:3of%.txt")
+diff -w <(cargo run -- 4:2 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_4x2.txt")
+diff -w <(cargo run -- -4:-2 -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_-4x-2.txt")
+diff -w <(cargo run -- 1:3 -o % -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_1x3of%.txt")
 diff -w <(cargo run -- 1 3 -o % -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_1_3of%.txt")
 diff -w <(cargo run -- 1 3 -o '' -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_1_3of.txt")
 diff -w <(cargo run -- 3:6 -c -i ${test_dir}/lorem.txt 2>/dev/null) <(cat "${test_dir}/choose_0_3_c.txt")
