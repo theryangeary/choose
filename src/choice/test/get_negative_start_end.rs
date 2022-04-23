@@ -132,6 +132,16 @@ fn positive_negative_some() {
 }
 
 #[test]
+fn positive_negative_same() {
+    let config = Config::from_iter(vec!["choose", "1:-3"]);
+    let slice = &[0, 1, 2, 3];
+    assert_eq!(
+        Some((1, 1)),
+        config.opt.choices[0].get_negative_start_end(slice).unwrap()
+    );
+}
+
+#[test]
 fn error_when_choice_is_isize_min() {
     let isize_min = format!("{}", isize::MIN);
     let config = Config::from_iter(vec!["choose", &isize_min]);

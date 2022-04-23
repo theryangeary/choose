@@ -1000,3 +1000,33 @@ fn print_after_to_after_empty() {
 fn print_negative_end_to_negative_end_empty() {
     test_fn(vec!["choose", "-1:-1"], "", "");
 }
+
+#[test]
+fn print_positive_to_following_negative() {
+    test_fn(vec!["choose", "1:-3"], "a b c d e", "b c");
+}
+
+#[test]
+fn print_positive_to_same_as_negative() {
+    test_fn(vec!["choose", "1:-4"], "a b c d e", "b");
+}
+
+#[test]
+fn print_positive_to_preceding_negative() {
+    test_fn(vec!["choose", "1:-5"], "a b c d e", "");
+}
+
+#[test]
+fn print_end_to_last_negative_is_last() {
+    test_fn(vec!["choose", "4:-1"], "a b c d e", "e");
+}
+
+#[test]
+fn print_after_end_to_last_negative_is_empty() {
+    test_fn(vec!["choose", "5:-1"], "a b c d e", "");
+}
+
+#[test]
+fn print_after_end_to_second_to_last_negative_is_empty() {
+    test_fn(vec!["choose", "5:-2"], "a b c d e", "");
+}
