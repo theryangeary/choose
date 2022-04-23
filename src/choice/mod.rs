@@ -140,6 +140,8 @@ impl Choice {
                     handle.write_choice(*word, config, true)?;
                 }
                 handle.write_choice(vec[end], config, false)?;
+            } else if start == end && self.start < vec.len().try_into()? {
+                handle.write_choice(vec[start], config, false)?;
             }
         }
 
