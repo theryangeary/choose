@@ -25,8 +25,8 @@ Branch off of `develop`. Bug fix branches should be named
 `feature/<descriptive-name>`. **Any hotfix or feature branch should only address
 one issue/feature**.
 
-```
-$ git checkout -b <branch-name> develop
+```sh
+git checkout -b <branch-name> develop
 ```
 
 ## Check The Test Suite
@@ -34,9 +34,9 @@ $ git checkout -b <branch-name> develop
 Before making any changes, make sure that both the unit tests and the end-to-end
 tests all work.
 
-```
-$ cargo test
-$ test/e2e_test.sh
+```sh
+cargo test
+test/e2e_test.sh
 ```
 
 If you are planning on making changes that may affect performance, consider
@@ -70,32 +70,32 @@ readme or any other relevant locations.
 Once you've finished your changes, make sure that your develop branch is up to
 date.
 
-```
-$ git remote add upstream git@github.com:theryangeary/choose.git
-$ git checkout develop
-$ git pull upstream develop
+```sh
+git remote add upstream git@github.com:theryangeary/choose.git
+git checkout develop
+git pull upstream develop
 ```
 
 Check that your code is all formatted correctly. If not, commit any changes.
 
-```
-$ git checkout <your-branch>
-$ cargo fmt
-$ git status
+```sh
+git checkout <your-branch>
+cargo fmt
+git status
 ```
 
 Rebase and squash your branch on develop. This will prompt you with a list of
 your commits. Change all but the first commit to "squash". Write a nice
 changelog message in the resulting commit.
 
-```
-$ git rebase -i develop
+```sh
+git rebase -i develop
 ```
 
 Push to your fork.
 
-```
-$ git push --set-upstream origin <your-branch>
+```sh
+git push --set-upstream origin <your-branch>
 ```
 
 Go to GitHub and [make a Pull
@@ -111,6 +111,6 @@ commits. Each Pull Request will effectively be a single commit added to the
 
 After changing and committing, push like this:
 
-```
-$ git push --force-with-lease <your-branch>
+```sh
+git push --force-with-lease <your-branch>
 ```

@@ -5,6 +5,7 @@ This is `choose`, a human-friendly and fast alternative to `cut` and (sometimes)
 [![`choose` demo](https://asciinema.org/a/315932.png)](https://asciinema.org/a/315932?autoplay=1)
 
 ## Features
+
 - terse field selection syntax similar to Python's list slices
 - negative indexing from end of line
 - optional start/end index
@@ -107,10 +108,10 @@ find instructions [here](https://www.rust-lang.org/tools/install).
 Then, to install:
 
 ```bash
-$ git clone https://github.com/theryangeary/choose.git
-$ cd choose
-$ cargo build --release
-$ install target/release/choose <DESTDIR>
+git clone https://github.com/theryangeary/choose.git
+cd choose
+cargo build --release
+install target/release/choose <DESTDIR>
 ```
 
 Just make sure DESTDIR is in your path.
@@ -119,33 +120,33 @@ Just make sure DESTDIR is in your path.
 
 Cargo:
 
-```
-$ cargo install choose
+```sh
+cargo install choose
 ```
 
 Arch Linux:
 
-```
-$ yay -S choose-rust-git
+```sh
+yay -S choose-rust-git
 ```
 
 Fedora/CentOS [COPR](https://copr.fedorainfracloud.org/coprs/atim/choose/):
 
-```
-$ dnf copr enable atim/choose
-$ dnf install choose
+```sh
+dnf copr enable atim/choose
+dnf install choose
 ```
 
 Homebrew:
 
-```
-$ brew install choose-rust
+```sh
+brew install choose-rust
 ```
 
 MacPorts:
 
-```
-$ sudo port install choose
+```sh
+sudo port install choose
 ```
 
 ### Benchmarking
@@ -157,7 +158,7 @@ that match the glob "long*txt". GitHub doesn't support files big enough in
 normal repos, but for reference the files I'm working with have lengths like
 these:
 
-```
+```sh
      1000 test/long.txt
     19272 test/long_long.txt
     96360 test/long_long_long.txt
@@ -179,4 +180,3 @@ bore no ye of paid rent form. Old design are dinner better nearer silent excuse.
 She which are maids boy sense her shade. Considered reasonable we affronting on
 expression in. So cordial anxious mr delight. Shot his has must wish from sell
 ```
-
