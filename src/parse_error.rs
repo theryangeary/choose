@@ -9,8 +9,8 @@ pub enum ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ParseError::ParseIntError(e) => write!(f, "{}", e.to_string()),
-            ParseError::ParseRangeError(e) => write!(f, "{}", e.to_string()),
+            ParseError::ParseIntError(e) => write!(f, "{}", e),
+            ParseError::ParseRangeError(e) => write!(f, "{}", e),
         }
     }
 }
