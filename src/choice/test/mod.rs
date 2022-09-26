@@ -1,8 +1,8 @@
 use crate::config::Config;
 use crate::opt::Opt;
+use clap::Parser;
 use std::ffi::OsString;
 use std::io::{self, BufWriter, Write};
-use structopt::StructOpt;
 
 mod get_negative_start_end;
 mod is_reverse_range;

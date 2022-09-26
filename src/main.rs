@@ -1,7 +1,7 @@
+use clap::Parser;
 use std::fs::File;
 use std::io::{self, Read};
 use std::process;
-use structopt::StructOpt;
 
 #[macro_use]
 extern crate lazy_static;
@@ -25,7 +25,18 @@ use result::Result;
 use writer::WriteReceiver;
 
 fn main() {
-    let opt = Opt::from_args();
+    // clap v3 exits with status code 2 on parse errors. For compatibility, we use exit code 1.
+    let opt = match Opt::try_parse() {
+        Ok(opt) => opt,
+        Err(e) if e.use_stderr() => {
+            let _ = e.print();
+            process::exit(1);
+        }
+        Err(e) => {
+            let _ = e.print();
+            process::exit(0);
+        }
+    };
 
     let stdout = io::stdout();
     let lock = stdout.lock();
