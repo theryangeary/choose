@@ -14,7 +14,7 @@ impl Config {
         I: IntoIterator,
         I::Item: Into<OsString> + Clone,
     {
-        Config::new(Opt::from_iter(iter))
+        Config::new(Opt::parse_from(iter))
     }
 }
 

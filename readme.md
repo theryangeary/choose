@@ -44,48 +44,37 @@ Please see our guidelines in [contributing.md](contributing.md).
 
 ```
 $ choose --help
-choose 1.3.4
 `choose` sections from each line of files
 
-USAGE:
-    choose [OPTIONS] <CHOICES>...
+Usage: choose [OPTIONS] <CHOICES>...
 
-ARGS:
-    <CHOICES>...    Fields to print. Either a, a:b, a..b, or a..=b, where a and b are integers.
-                    The beginning or end of a range can be omitted, resulting in including the
-                    beginning or end of the line, respectively. a:b is inclusive of b (unless
-                    overridden by -x). a..b is exclusive of b and a..=b is inclusive of b
+Arguments:
+  <CHOICES>...  Fields to print. Either a, a:b, a..b, or a..=b, where a and b are integers.
+                The beginning or end of a range can be omitted, resulting in including the
+                beginning or end of the line, respectively. a:b is inclusive of b (unless
+                overridden by -x). a..b is exclusive of b and a..=b is inclusive of b
 
-OPTIONS:
-    -c, --character-wise
-            Choose fields by character number
-
-    -d, --debug
-            Activate debug mode
-
-    -f, --field-separator <FIELD_SEPARATOR>
-            Specify field separator other than whitespace, using Rust `regex` syntax
-
-    -h, --help
-            Print help information
-
-    -i, --input <INPUT>
-            Input file
-
-    -n, --non-greedy
-            Use non-greedy field separators
-
-    -o, --output-field-separator <OUTPUT_FIELD_SEPARATOR>
-            Specify output field separator
-
-        --one-indexed
-            Index from 1 instead of 0
-
-    -V, --version
-            Print version information
-
-    -x, --exclusive
-            Use exclusive ranges, similar to array indexing in many programming languages
+Options:
+  -c, --character-wise
+          Choose fields by character number
+  -d, --debug
+          Activate debug mode
+  -x, --exclusive
+          Use exclusive ranges, similar to array indexing in many programming languages
+  -f, --field-separator <FIELD_SEPARATOR>
+          Specify field separator other than whitespace, using Rust `regex` syntax
+  -i, --input <INPUT>
+          Input file
+  -n, --non-greedy
+          Use non-greedy field separators
+      --one-indexed
+          Index from 1 instead of 0
+  -o, --output-field-separator <OUTPUT_FIELD_SEPARATOR>
+          Specify output field separator
+  -h, --help
+          Print help information
+  -V, --version
+          Print version information
 ```
 
 ### Examples

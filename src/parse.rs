@@ -61,8 +61,8 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
     Ok(Choice::new(start, end, kind))
 }
 
-pub fn output_field_separator(src: &str) -> String {
-    escape_ascii(src).unwrap()
+pub fn output_field_separator(src: &str) -> Result<String, std::string::FromUtf8Error> {
+    escape_ascii(src)
 }
 
 #[cfg(test)]
