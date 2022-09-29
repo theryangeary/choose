@@ -1,8 +1,8 @@
 use crate::config::Config;
 use crate::opt::Opt;
+use clap::Parser;
 use std::ffi::OsString;
 use std::io::{self, BufWriter, Write};
-use structopt::StructOpt;
 
 mod get_negative_start_end;
 mod is_reverse_range;
@@ -14,7 +14,7 @@ impl Config {
         I: IntoIterator,
         I::Item: Into<OsString> + Clone,
     {
-        Config::new(Opt::from_iter(iter))
+        Config::new(Opt::parse_from(iter))
     }
 }
 
