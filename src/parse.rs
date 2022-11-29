@@ -25,7 +25,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         None => match src.parse() {
             Ok(x) => return Ok(Choice::new(x, x, ChoiceKind::Single)),
             Err(e) => {
-                eprintln!("failed to parse choice argument: {}", src);
                 return Err(ParseError::ParseIntError(e));
             }
         },
@@ -37,7 +36,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         match cap[1].parse() {
             Ok(x) => x,
             Err(e) => {
-                eprintln!("failed to parse range start: {}", &cap[1]);
                 return Err(ParseError::ParseIntError(e));
             }
         }
@@ -48,10 +46,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         ".." => ChoiceKind::RustExclusiveRange,
         "..=" => ChoiceKind::RustInclusiveRange,
         _ => {
-            eprintln!(
-                "failed to parse range: not a valid range separator: {}",
-                &cap[2]
-            );
             return Err(ParseError::ParseRangeError(ParseRangeError::new(&cap[2])));
         }
     };
@@ -62,7 +56,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         match cap[3].parse() {
             Ok(x) => x,
             Err(e) => {
-                eprintln!("failed to parse range end: {}", &cap[3]);
                 return Err(ParseError::ParseIntError(e));
             }
         }
