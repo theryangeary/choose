@@ -9,7 +9,7 @@ use crate::writer::WriteReceiver;
 #[cfg(test)]
 mod test;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Choice {
     pub start: isize,
     pub end: isize,
@@ -18,7 +18,7 @@ pub struct Choice {
     reversed: bool,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ChoiceKind {
     Single,
     RustExclusiveRange,

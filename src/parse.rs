@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use backslash::escape_ascii;
 use regex::Regex;
 
@@ -9,13 +11,20 @@ lazy_static! {
     static ref PARSE_CHOICE_RE: Regex = Regex::new(r"^(-?\d*)(:|\.\.=?)(-?\d*)$").unwrap();
 }
 
+impl FromStr for Choice {
+    type Err = crate::parse_error::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        crate::parse::choice(s)
+    }
+}
+
 pub fn choice(src: &str) -> Result<Choice, ParseError> {
     let cap = match PARSE_CHOICE_RE.captures_iter(src).next() {
         Some(v) => v,
         None => match src.parse() {
             Ok(x) => return Ok(Choice::new(x, x, ChoiceKind::Single)),
             Err(e) => {
-                eprintln!("failed to parse choice argument: {}", src);
                 return Err(ParseError::ParseIntError(e));
             }
         },
@@ -27,7 +36,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         match cap[1].parse() {
             Ok(x) => x,
             Err(e) => {
-                eprintln!("failed to parse range start: {}", &cap[1]);
                 return Err(ParseError::ParseIntError(e));
             }
         }
@@ -38,10 +46,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         ".." => ChoiceKind::RustExclusiveRange,
         "..=" => ChoiceKind::RustInclusiveRange,
         _ => {
-            eprintln!(
-                "failed to parse range: not a valid range separator: {}",
-                &cap[2]
-            );
             return Err(ParseError::ParseRangeError(ParseRangeError::new(&cap[2])));
         }
     };
@@ -52,7 +56,6 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
         match cap[3].parse() {
             Ok(x) => x,
             Err(e) => {
-                eprintln!("failed to parse range end: {}", &cap[3]);
                 return Err(ParseError::ParseIntError(e));
             }
         }
@@ -61,8 +64,10 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
     Ok(Choice::new(start, end, kind))
 }
 
-pub fn output_field_separator(src: &str) -> String {
-    escape_ascii(src).unwrap()
+// bpaf's parse gives String by value so type signature needs to match
+#[allow(clippy::needless_pass_by_value)]
+pub fn output_field_separator(src: String) -> String {
+    escape_ascii(&src).unwrap()
 }
 
 #[cfg(test)]

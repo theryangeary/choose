@@ -1,20 +1,14 @@
 use crate::config::Config;
-use crate::opt::Opt;
-use std::ffi::OsString;
 use std::io::{self, BufWriter, Write};
-use structopt::StructOpt;
 
 mod get_negative_start_end;
 mod is_reverse_range;
 mod print_choice;
 
 impl Config {
-    pub fn from_iter<I>(iter: I) -> Self
-    where
-        I: IntoIterator,
-        I::Item: Into<OsString> + Clone,
-    {
-        Config::new(Opt::from_iter(iter))
+    pub fn from_args(items: &[&str]) -> Self {
+        let items = bpaf::Args::from(items);
+        Config::new(crate::opt::options().run_inner(items).unwrap())
     }
 }
 

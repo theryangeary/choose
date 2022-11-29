@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{self, Read};
 use std::process;
-use structopt::StructOpt;
 
 #[macro_use]
 extern crate lazy_static;
@@ -25,7 +24,7 @@ use result::Result;
 use writer::WriteReceiver;
 
 fn main() {
-    let opt = Opt::from_args();
+    let opt = opt::options().run();
 
     let stdout = io::stdout();
     let lock = stdout.lock();
@@ -43,10 +42,10 @@ fn main() {
                         // BrokenPipe means whoever is reading the output hung up, we should
                         // gracefully exit
                     } else {
-                        eprintln!("Failed to write to output: {}", e)
+                        eprintln!("Failed to write to output: {}", e);
                     }
                 }
-                e @ _ => eprintln!("Error: {}", e),
+                e => eprintln!("Error: {}", e),
             }
         }
     }
@@ -74,11 +73,11 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
         match line {
             Ok(l) => {
                 let l = if (config.opt.character_wise || config.opt.field_separator.is_some())
-                    && l.ends_with("\n")
+                    && l.ends_with('\n')
                 {
                     &l[0..l.len().saturating_sub(1)]
                 } else {
-                    &l
+                    l
                 };
 
                 let choice_iter = &mut config.opt.choices.iter().peekable();
@@ -90,7 +89,7 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
                     }
                 }
 
-                handle.write(b"\n").map(|_| ())?
+                handle.write(b"\n").map(|_| ())?;
             }
             Err(e) => println!("Failed to read line: {}", e),
         }
