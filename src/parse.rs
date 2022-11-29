@@ -64,6 +64,8 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
     Ok(Choice::new(start, end, kind))
 }
 
+// bpaf's parse gives String by value so type signature needs to match
+#[allow(clippy::needless_pass_by_value)]
 pub fn output_field_separator(src: String) -> String {
     escape_ascii(&src).unwrap()
 }

@@ -1,4 +1,4 @@
-use bpaf::*;
+use bpaf::Bpaf;
 use std::path::PathBuf;
 
 use crate::choice::Choice;
