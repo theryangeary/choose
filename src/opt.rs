@@ -45,6 +45,5 @@ pub struct Opt {
     /// respectively. a:b is inclusive of b (unless overridden by -x). a..b is
     /// exclusive of b and a..=b is inclusive of b.
     #[bpaf(any::<Choice>("CHOICE"), some("At least one is required"))]
-    // parse(try_from_str = parse::choice))]
     pub choices: Vec<Choice>,
 }
