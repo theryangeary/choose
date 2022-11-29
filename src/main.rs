@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{self, Read};
 use std::process;
-use structopt::StructOpt;
 
 #[macro_use]
 extern crate lazy_static;
@@ -25,7 +24,7 @@ use result::Result;
 use writer::WriteReceiver;
 
 fn main() {
-    let opt = Opt::from_args();
+    let opt = opt::options().run();
 
     let stdout = io::stdout();
     let lock = stdout.lock();
