@@ -1,3 +1,5 @@
+use std::string::FromUtf8Error;
+
 use backslash::escape_ascii;
 use regex::Regex;
 
@@ -6,7 +8,7 @@ use crate::error::ParseRangeError;
 use crate::parse_error::ParseError;
 
 lazy_static! {
-    static ref PARSE_CHOICE_RE: Regex = Regex::new(r"^(-?\d*)(:|\.\.=?)(-?\d*)$").unwrap();
+    pub static ref PARSE_CHOICE_RE: Regex = Regex::new(r"^(-?\d*)(:|\.\.=?)(-?\d*)$").unwrap();
 }
 
 pub fn choice(src: &str) -> Result<Choice, ParseError> {
@@ -61,8 +63,8 @@ pub fn choice(src: &str) -> Result<Choice, ParseError> {
     Ok(Choice::new(start, end, kind))
 }
 
-pub fn output_field_separator(src: &str) -> String {
-    escape_ascii(src).unwrap()
+pub fn output_field_separator(src: &str) -> Result<String, FromUtf8Error> {
+    escape_ascii(src)
 }
 
 #[cfg(test)]
