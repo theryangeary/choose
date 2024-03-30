@@ -12,7 +12,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(mut opt: Opt) -> Self {
-        for mut choice in &mut opt.choices {
+        for choice in &mut opt.choices {
             if (opt.exclusive && choice.kind == ChoiceKind::ColonRange)
                 || choice.kind == ChoiceKind::RustExclusiveRange
             {
