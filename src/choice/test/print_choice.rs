@@ -1,7 +1,7 @@
 use super::*;
 
 fn test_fn(vec: Vec<&str>, input: &str, output: &str) {
-    let config = Config::from_iter(vec);
+    let config = Config::from_vec(vec);
     let mut handle = BufWriter::new(MockStdout::new());
 
     config.opt.choices[0]
@@ -26,7 +26,7 @@ fn print_after_end() {
 
 #[test]
 fn print_out_of_order() {
-    let config = Config::from_iter(vec!["choose", "3", "1"]);
+    let config = Config::from_vec(vec!["choose", "3", "1"]);
     let mut handle = BufWriter::new(MockStdout::new());
     let mut handle1 = BufWriter::new(MockStdout::new());
 
@@ -513,7 +513,7 @@ fn print_1_to_3_with_output_field_separator_rust_syntax_inclusive() {
 
 #[test]
 fn print_1_and_3_with_output_field_separator_rust_syntax_inclusive() {
-    let config = Config::from_iter(vec!["choose", "1", "3", "-o", "#"]);
+    let config = Config::from_vec(vec!["choose", "1", "3", "-o", "#"]);
     let mut handle = BufWriter::new(MockStdout::new());
     config.opt.choices[0]
         .print_choice(&String::from("a b c d"), &config, &mut handle)
