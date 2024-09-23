@@ -32,3 +32,13 @@ jobs:
 
     - name: Run end-to-end tests
       run: test/e2e_test.sh
+
+    - name: Build aarch64-apple-darwin
+      run: |
+        rustup target add aarch64-apple-darwin
+        cargo build --verbose --release --target aarch64-apple-darwin
+
+    - name: Build x86_64-pc-windows-gnu
+      run: |
+        rustup target add x86_64-pc-windows-gnu
+        cargo build --verbose --release --target x86_64-pc-windows-gnu
