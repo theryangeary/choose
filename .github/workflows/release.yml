@@ -39,6 +39,12 @@ jobs:
         rustup target add aarch64-apple-darwin
         cargo build --verbose --release --target aarch64-apple-darwin
 
+    - name: Build x86_64-pc-windows-gnu
+      run: |
+        sudo apt-get update && sudo apt-get install -y mingw-w64
+        rustup target add x86_64-pc-windows-gnu
+        cargo build --verbose --release --target x86_64-pc-windows-gnu
+
     - name: Create GitHub release
       id: create-release
       uses: actions/create-release@v1
@@ -82,6 +88,17 @@ jobs:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
         asset_path: target/aarch64-apple-darwin/release/choose
         asset_name: choose-aarch64-apple-darwin
+        asset_content_type: application/raw
+
+    - name: Upload aarch64 binary to GitHub release
+      id: upload-x86_64-pc-windows-gnu-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: target/x86_64-pc-windows-gnu/release/choose
+        asset_name: choose-x86_64-pc-windows-gnu
         asset_content_type: application/raw
 
     - name: Create crates.io release
