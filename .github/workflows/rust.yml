@@ -35,6 +35,10 @@ jobs:
 
     - name: Build aarch64-apple-darwin
       run: |
+        curl -L https://github.com/roblabla/MacOSX-SDKs/releases/download/13.3/MacOSX13.3.sdk.tar.xz | tar xJ
+        export SDKROOT=$(pwd)/MacOSX13.3.sdk/
+        export PATH=$PATH:~/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/
+        export CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER=rust-lld
         rustup target add aarch64-apple-darwin
         cargo build --verbose --release --target aarch64-apple-darwin
 
