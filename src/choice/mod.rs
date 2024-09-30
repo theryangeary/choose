@@ -190,7 +190,7 @@ impl Choice {
     ///
     /// Returns Ok(None) if the resulting choice range would not include any item in the slice.
     fn get_negative_start_end<T>(&self, slice: &[T]) -> Result<Option<(usize, usize)>> {
-        if slice.len() == 0 {
+        if slice.is_empty() {
             return Ok(None);
         }
 
@@ -222,10 +222,7 @@ impl Choice {
                 // then we assume self.end is negative
                 let start = self.start.try_into()?;
 
-                if end_abs <= slice_len_as_isize
-                    || start <= slice.len()
-                    || (end_abs > slice_len_as_isize && start > slice.len())
-                {
+                if end_abs <= slice_len_as_isize || start <= slice.len() || start > slice.len() {
                     let end = slice.len().saturating_sub(end_abs.try_into()?);
                     Ok(Some((
                         std::cmp::min(start, slice.len().saturating_sub(1)),
@@ -238,10 +235,7 @@ impl Choice {
                 // then we assume self.start is negative
                 let end = self.end.try_into()?;
 
-                if start_abs <= slice_len_as_isize
-                    || end <= slice.len()
-                    || (start_abs > slice_len_as_isize && end > slice.len())
-                {
+                if start_abs <= slice_len_as_isize || end <= slice.len() || end > slice.len() {
                     let start = slice.len().saturating_sub(start_abs.try_into()?);
                     Ok(Some((
                         std::cmp::min(start, slice.len().saturating_sub(1)),

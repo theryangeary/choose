@@ -46,7 +46,7 @@ fn main() {
                         eprintln!("Failed to write to output: {}", e)
                     }
                 }
-                e @ _ => eprintln!("Error: {}", e),
+                e => eprintln!("Error: {}", e),
             }
         }
     }
@@ -74,11 +74,11 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
         match line {
             Ok(l) => {
                 let l = if (config.opt.character_wise || config.opt.field_separator.is_some())
-                    && l.ends_with("\n")
+                    && l.ends_with('\n')
                 {
                     &l[0..l.len().saturating_sub(1)]
                 } else {
-                    &l
+                    l
                 };
 
                 let choice_iter = &mut config.opt.choices.iter().peekable();
