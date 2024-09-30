@@ -30,6 +30,12 @@ jobs:
         rustup target add x86_64-unknown-linux-musl
         cargo build --verbose --release --target x86_64-unknown-linux-musl
 
+    - name: Build aarch64-unknown-linux-gnu
+      run: |
+        sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+        rustup target add aarch64-unknown-linux-gnu
+        cargo build --verbose --release --target aarch64-unknown-linux-gnu
+
     - name: Build aarch64-apple-darwin
       run: |
         curl -L https://github.com/roblabla/MacOSX-SDKs/releases/download/13.3/MacOSX13.3.sdk.tar.xz | tar xJ
@@ -79,7 +85,18 @@ jobs:
         asset_name: choose-x86_64-unknown-linux-musl
         asset_content_type: application/raw
 
-    - name: Upload aarch64 binary to GitHub release
+    - name: Upload aarch64 linux binary to GitHub release
+      id: upload-aarch64-unknown-linux-gnu-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: target/aarch64-unknown-linux-gnu/release/choose
+        asset_name: choose-aarch64-unknown-linux-gnu
+        asset_content_type: application/raw
+
+    - name: Upload aarch64 darwin binary to GitHub release
       id: upload-aarch64-apple-darwin-release-asset
       uses: actions/upload-release-asset@v1.0.1
       env:
@@ -90,7 +107,7 @@ jobs:
         asset_name: choose-aarch64-apple-darwin
         asset_content_type: application/raw
 
-    - name: Upload aarch64 binary to GitHub release
+    - name: Upload mingw binary to GitHub release
       id: upload-x86_64-pc-windows-gnu-release-asset
       uses: actions/upload-release-asset@v1.0.1
       env:
