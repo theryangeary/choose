@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, test-aarch-linux]
   pull_request:
     branches: [ develop ]
 
