@@ -32,3 +32,4 @@ jobs:
 
     - name: Run end-to-end tests
       run: test/e2e_test.sh
+
