@@ -1,12 +1,13 @@
+use std::sync::LazyLock;
+
 use backslash::escape_ascii;
-use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::choice::{Choice, ChoiceKind};
 use crate::error::ParseRangeError;
 use crate::parse_error::ParseError;
 
-static PARSE_CHOICE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(-?\d*)(:|\.\.=?)(-?\d*)$").unwrap());
+static PARSE_CHOICE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(-?\d*)(:|\.\.=?)(-?\d*)$").unwrap());
 
 pub fn choice(src: &str) -> Result<Choice, ParseError> {
     let cap = match PARSE_CHOICE_RE.captures_iter(src).next() {
