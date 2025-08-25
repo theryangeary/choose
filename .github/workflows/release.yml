@@ -115,7 +115,7 @@ jobs:
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
         asset_path: target/x86_64-pc-windows-gnu/release/choose.exe
-        asset_name: choose-x86_64-pc-windows-gnu
+        asset_name: choose-x86_64-pc-windows-gnu.exe
         asset_content_type: application/raw
 
     - name: Create crates.io release
