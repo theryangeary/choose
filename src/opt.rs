@@ -14,6 +14,7 @@ pub struct Opt {
 
     /// Activate debug mode
     #[structopt(short, long)]
+    #[allow(unused)]
     pub debug: bool,
 
     /// Use exclusive ranges, similar to array indexing in many programming languages
