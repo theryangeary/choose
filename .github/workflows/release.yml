@@ -44,6 +44,7 @@ jobs:
         export CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER=rust-lld
         rustup target add aarch64-apple-darwin
         cargo build --verbose --release --target aarch64-apple-darwin
+        rm -rf $SDKROOT
 
     - name: Build x86_64-pc-windows-gnu
       run: |
