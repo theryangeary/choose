@@ -81,6 +81,9 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
                     l
                 };
 
+                // trim end to remove newline or CRLF on windows
+                let l = l.trim_end();
+
                 let choice_iter = &mut config.opt.choices.iter().peekable();
 
                 while let Some(choice) = choice_iter.next() {

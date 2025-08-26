@@ -28,6 +28,8 @@ diff -w <(cargo run -- 1:-3 -i ${test_dir}/alphabet.txt 2>/dev/null) <(cat "${te
 diff -w <(cargo run -- -f : 1 -i ${test_dir}/colons.txt 2>/dev/null) <(cat "${test_dir}/choose_colon_1.txt")
 diff -w <(echo a:b | cargo run -- -f : 1) <(echo b)
 diff -w <(echo -n a:b | cargo run -- -f : 1) <(echo b)
+# test CRLF for windows
+diff -w <(cargo run -- -f ';' -1 -i ${test_dir}/crlf.txt 2>/dev/null) <(cat "${test_dir}/crlf_output.txt")
 # add tests using piping
 
 set +e
