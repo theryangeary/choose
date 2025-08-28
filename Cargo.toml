@@ -2,7 +2,7 @@
 name = "choose"
 version = "1.3.7"
 authors = ["Ryan Geary <rtgnj42@gmail.com>"]
-edition = "2021"
+edition = "2024"
 license = "GPL-3.0-or-later"
 description = "A human-friendly and fast alternative to cut and (sometimes) awk"
 homepage = "https://github.com/theryangeary/choose"
