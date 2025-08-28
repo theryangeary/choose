@@ -73,14 +73,6 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
     while let Some(line) = reader.read_line(&mut buffer) {
         match line {
             Ok(l) => {
-                let l = if (config.opt.character_wise || config.opt.field_separator.is_some())
-                    && l.ends_with('\n')
-                {
-                    &l[0..l.len().saturating_sub(1)]
-                } else {
-                    l
-                };
-
                 // trim end to remove newline or CRLF on windows
                 let l = l.trim_end();
 
