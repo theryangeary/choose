@@ -47,7 +47,10 @@ impl Config {
                         process::exit(2);
                     }
                     regex::Error::CompiledTooBig(e) => {
-                        eprintln!("Compiled regular expression too big: compiled size cannot exceed {} bytes", e);
+                        eprintln!(
+                            "Compiled regular expression too big: compiled size cannot exceed {} bytes",
+                            e
+                        );
                         process::exit(2);
                     }
                     _ => {
