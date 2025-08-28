@@ -10,4 +10,4 @@ for i in $inputs; do
   bench "awk '{print $4 $5 $6}' ${i}" > $output/awk_$(basename $i .txt).bench
 done
 
-grep time $output/* | sort -r
+grep time $output/* | sort -r | column -t
