@@ -48,7 +48,6 @@ name = "choose"
 version = "1.3.7"
 dependencies = [
  "backslash",
- "lazy_static",
  "regex",
  "structopt",
 ]
