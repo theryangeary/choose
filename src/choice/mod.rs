@@ -48,13 +48,17 @@ impl Choice {
         if config.opt.character_wise {
             self.print_choice_generic(line.chars(), config, handle)
         } else {
+            // effectively ignore would-be choices that are empty as long as non-greedy is not enabled
+            let predicate = |s: &&str| !s.is_empty() || config.opt.non_greedy;
+            
             match &config.separator {
                 Some(r) => {
-                    let i = r.split(line).filter(|s| !s.is_empty() || config.opt.non_greedy);
+                    
+                    let i = r.split(line).filter(predicate);
                     self.print_choice_generic(i, config, handle)
                 }
                 None => {
-                    let i = line.split_whitespace().filter(|s| !s.is_empty() || config.opt.non_greedy);
+                    let i = line.split_whitespace().filter(predicate);
                     self.print_choice_generic(i, config, handle)
                 }
             }
