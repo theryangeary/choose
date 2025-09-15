@@ -1027,5 +1027,5 @@ fn print_after_end_to_second_to_last_negative_is_empty() {
 
 #[test]
 fn do_not_print_carriage_return() {
-    test_fn(vec!["choose", ":"], "ABC;GHI;JKKK;KLLL\r", "ABC;GHI;JKKK;KLLL");
+    test_fn(vec!["choose", ":"], "ABC;GHI;JKKK;KLLL\r  ", "ABC;GHI;JKKK;KLLL");
 }
