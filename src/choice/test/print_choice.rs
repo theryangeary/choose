@@ -1,4 +1,4 @@
-use crate::{process_all_choices, writer::Writer};
+use crate::{process_all_choices_for_line, writer::Writer};
 
 use super::*;
 
@@ -6,7 +6,7 @@ fn test_fn(vec: Vec<&str>, input: &str, output: &str) {
     let config = Config::from_iter(vec);
     let mut handle = Writer::from(BufWriter::new(MockStdout::new()));
 
-    process_all_choices(&mut handle, &config, input).unwrap();
+    process_all_choices_for_line(&mut handle, &config, input).unwrap();
 
     assert_eq!(String::from(output), MockStdout::str_from_writer(handle));
 }
@@ -1023,4 +1023,9 @@ fn print_after_end_to_last_negative_is_empty() {
 #[test]
 fn print_after_end_to_second_to_last_negative_is_empty() {
     test_fn(vec!["choose", "5:-2"], "a b c d e", "");
+}
+
+#[test]
+fn do_not_print_carriage_return() {
+    test_fn(vec!["choose", ":"], "ABC;GHI;JKKK;KLLL\r", "ABC;GHI;JKKK;KLLL");
 }

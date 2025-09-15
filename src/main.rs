@@ -76,9 +76,11 @@ fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()>
         match reader.read_line(&mut buffer) {
             Ok(n) => {
                 if n == 0 {
+                    // EOF
                     break;
                 }
-                process_all_choices(&mut handle, &config, &buffer)?;
+
+                process_all_choices_for_line(&mut handle, &config, &buffer)?;
 
                 handle.write_line()?;
             }
@@ -89,12 +91,12 @@ fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()>
     Ok(())
 }
 
-fn process_all_choices<W: WriteReceiver>(
+fn process_all_choices_for_line<W: WriteReceiver>(
     handle: &mut Writer<W>,
     config: &Config,
-    buffer: &str,
+    line: &str,
 ) -> Result<()> {
     Ok(for choice_index in 0..config.opt.choices.len() {
-        config.opt.choices[choice_index].print_choice(buffer, config, handle)?;
+        config.opt.choices[choice_index].print_choice(line, config, handle)?;
     })
 }
