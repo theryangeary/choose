@@ -48,11 +48,16 @@ impl Choice {
         if config.opt.character_wise {
             self.print_choice_generic(line.chars(), config, handle)
         } else {
-            let line_iter = config
-                .separator
-                .split(line)
-                .filter(|s| !s.is_empty() || config.opt.non_greedy);
-            self.print_choice_generic(line_iter, config, handle)
+            match &config.separator {
+                Some(r) => {
+                    let i = r.split(line).filter(|s| !s.is_empty() || config.opt.non_greedy);
+                    self.print_choice_generic(i, config, handle)
+                }
+                None => {
+                    let i = line.split_whitespace().filter(|s| !s.is_empty() || config.opt.non_greedy);
+                    self.print_choice_generic(i, config, handle)
+                }
+            }
         }
     }
 

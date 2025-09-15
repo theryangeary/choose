@@ -6,7 +6,7 @@ use crate::opt::Opt;
 
 pub struct Config {
     pub opt: Opt,
-    pub separator: Regex,
+    pub separator: Option<Regex>,
     pub output_separator: Box<[u8]>,
 }
 
@@ -34,31 +34,31 @@ impl Config {
             }
         }
 
-        let separator = match Regex::new(match &opt.field_separator {
-            Some(s) => s,
-            None => "[[:space:]]",
-        }) {
-            Ok(r) => r,
-            Err(e) => {
-                // Exit code of 2 means failed to compile field_separator regex
-                match e {
-                    regex::Error::Syntax(e) => {
-                        eprintln!("Syntax error compiling regular expression: {}", e);
-                        process::exit(2);
-                    }
-                    regex::Error::CompiledTooBig(e) => {
-                        eprintln!(
-                            "Compiled regular expression too big: compiled size cannot exceed {} bytes",
-                            e
-                        );
-                        process::exit(2);
-                    }
-                    _ => {
-                        eprintln!("Error compiling regular expression: {}", e);
-                        process::exit(2);
+        let separator = match &opt.field_separator {
+            Some(s) => match Regex::new(s) {
+                Ok(r) => Some(r),
+                Err(e) => {
+                    // Exit code of 2 means failed to compile field_separator regex
+                    match e {
+                        regex::Error::Syntax(e) => {
+                            eprintln!("Syntax error compiling regular expression: {}", e);
+                            process::exit(2);
+                        }
+                        regex::Error::CompiledTooBig(e) => {
+                            eprintln!(
+                                "Compiled regular expression too big: compiled size cannot exceed {} bytes",
+                                e
+                            );
+                            process::exit(2);
+                        }
+                        _ => {
+                            eprintln!("Error compiling regular expression: {}", e);
+                            process::exit(2);
+                        }
                     }
                 }
-            }
+            },
+            None => None,
         };
 
         let output_separator = match opt.character_wise {
