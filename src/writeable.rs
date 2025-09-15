@@ -1,4 +1,6 @@
-pub trait Writeable: Copy {
+use std::fmt::Debug;
+
+pub trait Writeable: Copy + Debug {
     fn to_byte_buf(&self) -> Box<[u8]>;
     fn is_empty(&self) -> bool;
 }
