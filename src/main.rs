@@ -70,17 +70,18 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
     let mut reader = reader::BufReader::new(read);
     let mut buffer = String::new();
 
-    while let Some(line) = reader.read_line(&mut buffer) {
-        match line {
-            Ok(l) => {
-                // trim end to remove newline or CRLF on windows
-                let l = l.trim_end();
+    let choices = &config.opt.choices;
+    let last_choice_index = choices.len() - 1;
 
-                let choice_iter = &mut config.opt.choices.iter().peekable();
-
-                while let Some(choice) = choice_iter.next() {
-                    choice.print_choice(l, &config, handle)?;
-                    if choice_iter.peek().is_some() {
+    loop {
+        match reader.read_line(&mut buffer) {
+            Ok(n) => {
+                if n == 0 {
+                    break;
+                }
+                for choice_index in 0..choices.len() {
+                    choices[choice_index].print_choice(&buffer, &config, handle)?;
+                    if choice_index != last_choice_index {
                         handle.write_separator(&config)?;
                     }
                 }

@@ -14,12 +14,10 @@ impl<R: Read> BufReader<R> {
     pub fn read_line<'buf>(
         &mut self,
         buffer: &'buf mut String,
-    ) -> Option<io::Result<&'buf mut String>> {
+    ) -> io::Result<usize> {
         buffer.clear();
 
         self.reader
             .read_line(buffer)
-            .map(|u| if u == 0 { None } else { Some(buffer) })
-            .transpose()
     }
 }
