@@ -17,6 +17,16 @@ pub trait WriteReceiver: Write {
         Ok(())
     }
 
+    fn write_choice_separable<Wa: Writeable>(
+        &mut self, b: Wa, config: &Config, first: bool
+    ) -> io::Result<()> {
+        if !first && !b.is_empty() {
+            self.write_separator(config)?;
+        }
+        self.write(&b.to_byte_buf())?;
+        Ok(())
+    }
+
     fn write_separator(&mut self, config: &Config) -> io::Result<()> {
         self.write(&config.output_separator).map(|_| ())
     }

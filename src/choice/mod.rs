@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::convert::TryInto;
 
 use crate::config::Config;
@@ -52,8 +53,7 @@ impl Choice {
             let predicate = |s: &&str| !s.is_empty() || config.opt.non_greedy;
             
             match &config.separator {
-                Some(r) => {
-                    
+                Some(r) => {    
                     let i = r.split(line).filter(predicate);
                     self.print_choice_generic(i, config, handle)
                 }
@@ -103,7 +103,7 @@ impl Choice {
     }
 
     fn print_choice_loop_max_items<W, T, I>(
-        iter: I,
+        mut iter: I,
         config: &Config,
         handle: &mut W,
         max_items: isize,
@@ -113,15 +113,25 @@ impl Choice {
         T: Writeable,
         I: Iterator<Item = T>,
     {
-        let mut peek_iter = iter.peekable();
-        for i in 0..=max_items {
-            match peek_iter.next() {
-                Some(s) => {
-                    handle.write_choice(s, config, peek_iter.peek().is_some() && i != max_items)?;
-                }
-                None => break,
-            };
+        let s = iter.next();
+        if s.is_none() {
+            return Ok(())
         }
+        handle.write_choice_separable(s.unwrap(), config, true)?;
+
+        let mut limited_iter = iter.take(max(max_items-1, 0).try_into().unwrap());
+        while let Some(s) = limited_iter.next() {
+            handle.write_choice_separable(s, config, false)?;
+        };
+        // let mut peek_iter = iter.peekable();
+        // for i in 0..=max_items {
+        //     match peek_iter.next() {
+        //         Some(s) => {
+        //             handle.write_choice(s, config, peek_iter.peek().is_some() && i != max_items)?;
+        //         }
+        //         None => break,
+        //     };
+        // }
 
         Ok(())
     }
