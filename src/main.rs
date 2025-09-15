@@ -80,7 +80,13 @@ fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()>
                     break;
                 }
 
-                process_all_choices_for_line(&mut handle, &config, &buffer)?;
+                // slice off carriage return if present
+                let buffer_slice = match buffer.as_bytes().last() == Some(&b'\r') {
+                    true => &buffer[..buffer.as_bytes().len()-1],
+                    false => &buffer,
+                };
+
+                process_all_choices_for_line(&mut handle, &config, &buffer_slice)?;
 
                 handle.write_line()?;
             }
