@@ -507,15 +507,7 @@ fn print_1_to_3_with_output_field_separator_rust_syntax_inclusive() {
 
 #[test]
 fn print_1_and_3_with_output_field_separator_rust_syntax_inclusive() {
-    let config = Config::from_iter(vec!["choose", "1", "3", "-o", "#"]);
-    let mut handle = Writer::from(BufWriter::new(MockStdout::new()));
-    config.opt.choices[0]
-        .print_choice(&String::from("a b c d"), &config, &mut handle)
-        .unwrap();
-    config.opt.choices[1]
-        .print_choice(&String::from("a b c d"), &config, &mut handle)
-        .unwrap();
-    assert_eq!(String::from("b#d"), MockStdout::str_from_writer(handle));
+    test_fn(vec!["choose", "1", "3", "-o", "#"], "a b c d", "b#d");
 }
 
 #[test]
