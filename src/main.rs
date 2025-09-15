@@ -24,14 +24,16 @@ use opt::Opt;
 use result::Result;
 use writer::WriteReceiver;
 
+use crate::writer::Writer;
+
 fn main() {
     let opt = Opt::from_args();
 
     let stdout = io::stdout();
     let lock = stdout.lock();
     let exit_result = match opt.input {
-        Some(_) => main_generic(opt, &mut io::BufWriter::new(lock)),
-        None => main_generic(opt, &mut io::LineWriter::new(lock)),
+        Some(_) => main_generic(opt, Writer::from(io::BufWriter::new(lock))),
+        None => main_generic(opt, Writer::from(io::LineWriter::new(lock))),
     };
 
     match exit_result {
@@ -52,7 +54,7 @@ fn main() {
     }
 }
 
-fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
+fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()> {
     let config = Config::new(opt);
 
     let read = match &config.opt.input {
@@ -70,27 +72,29 @@ fn main_generic<W: WriteReceiver>(opt: Opt, handle: &mut W) -> Result<()> {
     let mut reader = reader::BufReader::new(read);
     let mut buffer = String::new();
 
-    let choices = &config.opt.choices;
-    let last_choice_index = choices.len() - 1;
-
     loop {
         match reader.read_line(&mut buffer) {
             Ok(n) => {
                 if n == 0 {
                     break;
                 }
-                for choice_index in 0..choices.len() {
-                    choices[choice_index].print_choice(&buffer, &config, handle)?;
-                    if choice_index != last_choice_index {
-                        handle.write_separator(&config)?;
-                    }
-                }
+                process_all_choices(&mut handle, &config, &buffer)?;
 
-                handle.write(b"\n").map(|_| ())?
+                handle.write_line()?;
             }
             Err(e) => println!("Failed to read line: {}", e),
         }
     }
 
     Ok(())
+}
+
+fn process_all_choices<W: WriteReceiver>(
+    handle: &mut Writer<W>,
+    config: &Config,
+    buffer: &str,
+) -> Result<()> {
+    Ok(for choice_index in 0..config.opt.choices.len() {
+        config.opt.choices[choice_index].print_choice(buffer, config, handle)?;
+    })
 }

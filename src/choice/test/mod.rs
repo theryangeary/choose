@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::opt::Opt;
+use crate::writer::Writer;
 use std::ffi::OsString;
 use std::io::{self, BufWriter, Write};
 use structopt::StructOpt;
@@ -29,8 +30,8 @@ impl MockStdout {
         }
     }
 
-    fn str_from_buf_writer(b: BufWriter<MockStdout>) -> String {
-        match b.into_inner() {
+    fn str_from_writer(b: Writer<BufWriter<MockStdout>>) -> String {
+        match b.into_inner().into_inner() {
             Ok(b) => b.buffer,
             Err(_) => panic!("Failed to access BufWriter inner writer"),
         }

@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::error::Error;
 use crate::result::Result;
 use crate::writeable::Writeable;
-use crate::writer::WriteReceiver;
+use crate::writer::{WriteReceiver, Writer};
 
 #[cfg(test)]
 mod test;
@@ -40,11 +40,11 @@ impl Choice {
         }
     }
 
-    pub fn print_choice<W: WriteReceiver>(
+    pub fn print_choice<WR: WriteReceiver>(
         &self,
         line: &str,
         config: &Config,
-        handle: &mut W,
+        handle: &mut Writer<WR>,
     ) -> Result<()> {
         if config.opt.character_wise {
             self.print_choice_generic(line.chars(), config, handle)
@@ -73,14 +73,14 @@ impl Choice {
         self.negative_index
     }
 
-    fn print_choice_generic<W, T, I>(
+    fn print_choice_generic<WR, T, I>(
         &self,
         mut iter: I,
         config: &Config,
-        handle: &mut W,
+        handle: &mut Writer<WR>,
     ) -> Result<()>
     where
-        W: WriteReceiver,
+        WR: WriteReceiver,
         T: Writeable,
         I: Iterator<Item = T>,
     {
@@ -102,44 +102,29 @@ impl Choice {
         Ok(())
     }
 
-    fn print_choice_loop_max_items<W, T, I>(
-        mut iter: I,
+    fn print_choice_loop_max_items<WR, T, I>(
+        iter: I,
         config: &Config,
-        handle: &mut W,
+        handle: &mut Writer<WR>,
         max_items: isize,
     ) -> Result<()>
     where
-        W: WriteReceiver,
+        WR: WriteReceiver,
         T: Writeable,
         I: Iterator<Item = T>,
     {
-        let s = iter.next();
-        if s.is_none() {
-            return Ok(())
-        }
-        handle.write_choice_separable(s.unwrap(), config, true)?;
-
-        let mut limited_iter = iter.take(max(max_items, 0).try_into().unwrap());
+        let mut limited_iter = iter.take(max(max_items + 1, 0).try_into().unwrap());
         while let Some(s) = limited_iter.next() {
-            handle.write_choice_separable(s, config, false)?;
+            handle.write_choice_separable(s, config)?;
         };
-        // let mut peek_iter = iter.peekable();
-        // for i in 0..=max_items {
-        //     match peek_iter.next() {
-        //         Some(s) => {
-        //             handle.write_choice(s, config, peek_iter.peek().is_some() && i != max_items)?;
-        //         }
-        //         None => break,
-        //     };
-        // }
 
         Ok(())
     }
 
     /// Print choices that include at least one negative index
-    fn print_choice_negative<W, T, I>(&self, iter: I, config: &Config, handle: &mut W) -> Result<()>
+    fn print_choice_negative<WR, T, I>(&self, iter: I, config: &Config, handle: &mut Writer<WR>) -> Result<()>
     where
-        W: WriteReceiver,
+        WR: WriteReceiver,
         T: Writeable,
         I: Iterator<Item = T>,
     {
@@ -167,14 +152,14 @@ impl Choice {
         Ok(())
     }
 
-    fn print_choice_reverse<W, T, I>(
+    fn print_choice_reverse<WR, T, I>(
         &self,
         mut iter: I,
         config: &Config,
-        handle: &mut W,
+        handle: &mut Writer<WR>,
     ) -> Result<()>
     where
-        W: WriteReceiver,
+        WR: WriteReceiver,
         T: Writeable,
         I: Iterator<Item = T>,
     {
