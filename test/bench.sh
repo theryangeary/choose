@@ -7,7 +7,9 @@ for i in $inputs; do
   echo ${i}
   bench "target/release/choose 3:5 -i ${i}" > $output/choose_$(basename $i .txt).bench
   bench "cut -f 4-6 -d ' ' ${i}" > $output/cut_$(basename $i .txt).bench
+  bench "gcut -f 4-6 -d ' ' ${i}" > $output/gcut_$(basename $i .txt).bench
   bench "awk '{print $4 $5 $6}' ${i}" > $output/awk_$(basename $i .txt).bench
+  bench "gawk '{print $4 $5 $6}' ${i}" > $output/gawk_$(basename $i .txt).bench
 done
 
 grep time $output/* | sort -r | column -t
