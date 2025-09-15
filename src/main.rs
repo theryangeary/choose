@@ -80,11 +80,17 @@ fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()>
                     break;
                 }
 
+                let buffer_bytes = buffer.as_bytes();
+                let mut last_index = buffer_bytes.len().saturating_sub(1);
+                // slice off line feed if present
+                if buffer_bytes[last_index] == b'\n' {
+                    last_index = last_index.saturating_sub(1);
+                }
                 // slice off carriage return if present
-                let buffer_slice = match buffer.as_bytes().last() == Some(&b'\r') {
-                    true => &buffer[..buffer.as_bytes().len()-1],
-                    false => &buffer,
-                };
+                if buffer_bytes[last_index] == b'\r' {
+                    last_index = last_index.saturating_sub(1);
+                }
+                let buffer_slice = &buffer[..=last_index];
 
                 process_all_choices_for_line(&mut handle, &config, &buffer_slice)?;
 
