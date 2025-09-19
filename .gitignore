@@ -5,5 +5,5 @@ todo
 bench_output/
 **/*.bench
 **/*.svg
-test/long*txt
+test/benchinput*txt
 perf.data*

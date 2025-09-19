@@ -151,32 +151,5 @@ sudo port install choose
 
 ### Benchmarking
 
-Benchmarking is performed using the [`bench` utility](https://github.com/Gabriel439/bench).
+See [benchmarking](./benchmarking.md)
 
-Benchmarking is based on the assumption that there are five files in `test/`
-that match the glob "long*txt". GitHub doesn't support files big enough in
-normal repos, but for reference the files I'm working with have lengths like
-these:
-
-```sh
-     1000 test/long.txt
-    19272 test/long_long.txt
-    96360 test/long_long_long.txt
-   963600 test/long_long_long_long.txt
- 10599600 test/long_long_long_long_long.txt
-```
-
-and content generally like this:
-
-```
-Those an equal point no years do. Depend warmth fat but her but played. Shy and
-subjects wondered trifling pleasant. Prudent cordial comfort do no on colonel as
-assured chicken. Smart mrs day which begin. Snug do sold mr it if such.
-Terminated uncommonly at at estimating. Man behaviour met moonlight extremity
-acuteness direction.
-
-Ignorant branched humanity led now marianne too strongly entrance. Rose to shew
-bore no ye of paid rent form. Old design are dinner better nearer silent excuse.
-She which are maids boy sense her shade. Considered reasonable we affronting on
-expression in. So cordial anxious mr delight. Shot his has must wish from sell
-```
