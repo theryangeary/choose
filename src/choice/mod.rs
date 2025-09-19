@@ -46,9 +46,7 @@ impl Choice {
         config: &Config,
         handle: &mut Writer<WR>,
     ) -> Result<()> {
-        if config.opt.character_wise {
-            self.print_choice_generic(line.chars(), config, handle)
-        } else {
+        if !config.opt.character_wise {
             // effectively ignore would-be choices that are empty as long as non-greedy is not enabled
             let predicate = |s: &&str| config.opt.non_greedy || !s.is_empty();
             
@@ -62,7 +60,9 @@ impl Choice {
                     self.print_choice_generic(i, config, handle)
                 }
             }
-        }
+        } else {
+            self.print_choice_generic(line.chars(), config, handle)
+        } 
     }
 
     pub fn is_reverse_range(&self) -> bool {
