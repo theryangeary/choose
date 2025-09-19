@@ -33,6 +33,10 @@ fn main() {
     let lock = stdout.lock();
     let exit_result = match opt.input {
         Some(_) => main_generic(opt, Writer::from(io::BufWriter::new(lock))),
+        // it is important to use a LineWriter instead of BufWriter so that if
+        // the user is sitting waiting for ouput for a pipeline that gives lines
+        // slowly, they won't have to wait for the buffer to fill up before they
+        // see anything (think `tail`ing logs)
         None => main_generic(opt, Writer::from(io::LineWriter::new(lock))),
     };
 

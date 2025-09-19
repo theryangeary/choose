@@ -50,7 +50,7 @@ impl Choice {
             self.print_choice_generic(line.chars(), config, handle)
         } else {
             // effectively ignore would-be choices that are empty as long as non-greedy is not enabled
-            let predicate = |s: &&str| !s.is_empty() || config.opt.non_greedy;
+            let predicate = |s: &&str| config.opt.non_greedy || !s.is_empty();
             
             match &config.separator {
                 Some(r) => {    
@@ -84,11 +84,7 @@ impl Choice {
         T: Writeable,
         I: Iterator<Item = T>,
     {
-        if self.is_reverse_range() && !self.has_negative_index() {
-            self.print_choice_reverse(iter, config, handle)?;
-        } else if self.has_negative_index() {
-            self.print_choice_negative(iter, config, handle)?;
-        } else {
+        if !(self.is_reverse_range() || self.has_negative_index()) {
             if self.start > 0 {
                 iter.nth((self.start - 1).try_into()?);
             }
@@ -97,6 +93,10 @@ impl Choice {
                 .checked_sub(self.start)
                 .ok_or_else(|| Error::Config("expected end > start".into()))?;
             Choice::print_choice_loop_max_items(iter, config, handle, range)?;
+        } else if self.is_reverse_range() && !self.has_negative_index() {
+            self.print_choice_reverse(iter, config, handle)?;
+        } else if self.has_negative_index() {
+            self.print_choice_negative(iter, config, handle)?;
         }
 
         Ok(())
