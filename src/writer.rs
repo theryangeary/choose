@@ -22,7 +22,7 @@ pub trait WriteReceiver: Write {
         config: &Config,
         print_separator: bool,
     ) -> io::Result<()> {
-        let num_bytes_written = self.write(&b.to_byte_buf())?;
+        let num_bytes_written = self.write(&b.as_bytes())?;
         if num_bytes_written > 0 && print_separator {
             self.write_separator(config)?;
         };
@@ -47,7 +47,7 @@ pub trait WriteReceiver: Write {
         if !first && !b.is_empty() {
             self.write_separator(config)?;
         }
-        self.write(&b.to_byte_buf())?;
+        self.write(&b.as_bytes())?;
         Ok(())
     }
 

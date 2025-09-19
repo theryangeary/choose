@@ -1,31 +1,29 @@
+use std::borrow::Cow;
 use std::fmt::Debug;
 
 pub trait Writeable: Copy + Debug {
-    fn to_byte_buf(&self) -> Box<[u8]>;
+    fn as_bytes(&self) -> Cow<[u8]>;
     fn is_empty(&self) -> bool;
 }
 
 impl Writeable for &str {
-    fn to_byte_buf(&self) -> Box<[u8]> {
-        return Box::from(self.as_bytes());
+    fn as_bytes(&self) -> Cow<[u8]> {
+        Cow::Borrowed(str::as_bytes(self))
     }
     
     fn is_empty(&self) -> bool {
-        str::is_empty(&self)
+        str::is_empty(self)
     }
 }
 
 impl Writeable for char {
-    fn to_byte_buf(&self) -> Box<[u8]> {
-        let mut buf = [0; 4];
-        return self
-            .encode_utf8(&mut buf)
-            .to_owned()
-            .into_boxed_str()
-            .into_boxed_bytes();
+    fn as_bytes(&self) -> Cow<[u8]> {
+        let mut buf = [0u8; 4]; // Max UTF-8 bytes for a char
+        let encoded = self.encode_utf8(&mut buf);
+        Cow::Owned(encoded.as_bytes().to_vec())
     }
 
     fn is_empty(&self) -> bool {
-        return false
+        false
     }
 }
