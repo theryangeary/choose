@@ -34,7 +34,7 @@ and content from [lorem.txt](test/lorem.txt).
 First, customize the `bench` commands in `test/bench.sh` to run the workload
 you want to test. The default configuration here is for a machine where the
 default `cut` and `awk` are BSD versions, therefore there are additional GNU
-versions (`gcut` and `gawk`) included as well.
+versions (`gcut` and `gawk`) included as well. [uutils/coreutils](https://github.com/uutils/coreutils) is included as well (labeled `ucut`).
 
 You want to make sure that the output of all of your `bench` commands is the
 same, otherwise comparing the performance will be meaningless.
@@ -54,29 +54,34 @@ The results from a 2021 MacBook Pro w/ M1 processor and 16GB of RAM are below.
 The first column is the input file suffix (whatever comes after `benchinput`).
 
 ```
-1k      gcut    4.515  ms  (4.502  ms  ..  4.530  ms)
-1k      choose  4.869  ms  (4.824  ms  ..  4.919  ms)
-1k      cut     5.129  ms  (5.066  ms  ..  5.201  ms)
-1k      awk     5.953  ms  (5.885  ms  ..  6.060  ms)
-1k      gawk    8.629  ms  (8.570  ms  ..  8.681  ms)
-10k     gcut    6.039  ms  (5.970  ms  ..  6.079  ms)
-10k     choose  6.308  ms  (6.235  ms  ..  6.413  ms)
-10k     gawk    12.86  ms  (12.67  ms  ..  12.98  ms)
-10k     cut     13.92  ms  (13.89  ms  ..  13.95  ms)
-10k     awk     22.24  ms  (22.22  ms  ..  22.28  ms)
-100k    choose  20.59  ms  (20.40  ms  ..  20.90  ms)
-100k    gcut    21.43  ms  (21.19  ms  ..  21.69  ms)
-100k    gawk    56.12  ms  (55.86  ms  ..  56.66  ms)
-100k    cut     101.4  ms  (101.2  ms  ..  101.7  ms)
-100k    awk     186.9  ms  (180.2  ms  ..  197.4  ms)
-1000k   choose  162.8  ms  (160.1  ms  ..  166.1  ms)
-1000k   gcut    171.8  ms  (171.0  ms  ..  173.7  ms)
-1000k   gawk    483.9  ms  (482.5  ms  ..  485.9  ms)
-1000k   cut     979.9  ms  (976.7  ms  ..  985.9  ms)
-1000k   awk     1.825  s   (1.811  s   ..  1.848  s)
-10000k  choose  1.555  s   (1.528  s   ..  1.577  s)
-10000k  gcut    1.683  s   (1.638  s   ..  1.712  s)
-10000k  gawk    4.740  s   (4.655  s   ..  4.806  s)
-10000k  cut     9.765  s   (9.653  s   ..  9.865  s)
-10000k  awk     18.16  s   (18.03  s   ..  18.39  s)
+1k      gcut        4.565  ms  (4.521  ms  ..  4.604  ms)
+1k      choose      4.855  ms  (4.783  ms  ..  4.924  ms)
+1k      cut         5.095  ms  (4.986  ms  ..  5.222  ms)
+1k      awk         5.889  ms  (5.825  ms  ..  5.925  ms)
+1k      ucut        6.213  ms  (6.054  ms  ..  6.483  ms)
+1k      gawk        8.761  ms  (8.677  ms  ..  8.862  ms)
+10k     choose      5.828  ms  (5.752  ms  ..  5.923  ms)
+10k     gcut        6.144  ms  (6.019  ms  ..  6.337  ms)
+10k     ucut        6.839  ms  (6.788  ms  ..  6.901  ms)
+10k     gawk        12.80  ms  (12.44  ms  ..  13.04  ms)
+10k     cut         14.08  ms  (14.01  ms  ..  14.16  ms)
+10k     awk         22.48  ms  (22.26  ms  ..  22.87  ms)
+100k    ucut        13.67  ms  (13.49  ms  ..  13.85  ms)
+100k    choose      15.23  ms  (15.06  ms  ..  15.36  ms)
+100k    gcut        21.66  ms  (21.43  ms  ..  21.95  ms)
+100k    gawk        56.48  ms  (56.10  ms  ..  57.11  ms)
+100k    cut         102.1  ms  (101.6  ms  ..  102.6  ms)
+100k    awk         186.0  ms  (185.8  ms  ..  186.6  ms)
+1000k   ucut        78.37  ms  (77.51  ms  ..  78.97  ms)
+1000k   choose      107.5  ms  (103.8  ms  ..  110.8  ms)
+1000k   gcut        173.4  ms  (171.9  ms  ..  174.8  ms)
+1000k   gawk        488.1  ms  (NaN    s   ..  495.9  ms)
+1000k   cut         980.0  ms  (977.9  ms  ..  982.4  ms)
+1000k   awk         1.831  s   (NaN    s   ..  1.858  s)
+10000k  ucut        723.9  ms  (700.7  ms  ..  757.3  ms)
+10000k  choose      1.045  s   (1.022  s   ..  1.067  s)
+10000k  gcut        1.672  s   (1.662  s   ..  1.684  s)
+10000k  gawk        4.739  s   (4.660  s   ..  4.783  s)
+10000k  cut         9.761  s   (9.721  s   ..  9.783  s)
+10000k  awk         18.17  s   (17.96  s   ..  18.36  s)
 ```

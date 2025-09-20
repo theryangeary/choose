@@ -17,3 +17,4 @@ grep time $output/* | awk '{ value=$2; unitvalue=$3; };
     / s/ { m=1000 }; / ms/ { m=1 };
     { sub(" s","",unitvalue); value=value*m;
     print value " " $0; }' | choose -f '(benchinput| )' 2 0 1 3: | sort -V | choose -f '(\.b|/)' 0 2: | column -t
+#                                                       ^^^^^^^ try doing this with cut
