@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, BufRead, Read};
 use std::process;
 use structopt::StructOpt;
 
@@ -13,7 +13,6 @@ mod escape;
 mod opt;
 mod parse;
 mod parse_error;
-mod reader;
 mod result;
 mod writeable;
 mod writer;
@@ -73,10 +72,11 @@ fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()>
         None => Box::new(io::stdin()) as Box<dyn Read>,
     };
 
-    let mut reader = reader::BufReader::new(read);
+    let mut reader = io::BufReader::new(read);
     let mut buffer = String::new();
 
     loop {
+        buffer.clear();
         match reader.read_line(&mut buffer) {
             Ok(n) => {
                 if n == 0 {
@@ -84,19 +84,14 @@ fn main_generic<W: WriteReceiver>(opt: Opt, mut handle: Writer<W>) -> Result<()>
                     break;
                 }
 
-                let buffer_bytes = buffer.as_bytes();
-                let mut last_index = buffer_bytes.len().saturating_sub(1);
-                // slice off line feed if present
-                if buffer_bytes[last_index] == b'\n' {
-                    last_index = last_index.saturating_sub(1);
+                if buffer.ends_with('\n') {
+                    buffer.pop();
+                    if buffer.ends_with('\r') {
+                        buffer.pop();
+                    }
                 }
-                // slice off carriage return if present
-                if buffer_bytes[last_index] == b'\r' {
-                    last_index = last_index.saturating_sub(1);
-                }
-                let buffer_slice = &buffer[..=last_index];
 
-                process_all_choices_for_line(&mut handle, &config, &buffer_slice)?;
+                process_all_choices_for_line(&mut handle, &config, &buffer)?;
 
                 handle.write_line()?;
             }
