@@ -8,6 +8,7 @@ use structopt::StructOpt;
 mod get_negative_start_end;
 mod is_reverse_range;
 mod print_choice;
+mod literal_separators;
 
 impl Config {
     pub fn from_iter<I>(iter: I) -> Self

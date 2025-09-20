@@ -1,7 +1,7 @@
 use std::cmp::max;
 use std::convert::TryInto;
 
-use crate::config::Config;
+use crate::config::{Config, Separator};
 use crate::error::Error;
 use crate::result::Result;
 use crate::writeable::Writeable;
@@ -51,12 +51,16 @@ impl Choice {
             let predicate = |s: &&str| config.opt.non_greedy || !s.is_empty();
             
             match &config.separator {
-                Some(r) => {    
+                Separator::LiteralChar(c) => {
+                    let i = line.split(*c).filter(predicate);
+                    self.print_choice_generic(i, config, handle)
+                }
+                Separator::Regex(r) => {    
                     let i = r.split(line).filter(predicate);
                     self.print_choice_generic(i, config, handle)
                 }
-                None => {
-                    let i = line.split_whitespace().filter(predicate);
+                Separator::Whitespace => {
+                    let i = line.split_whitespace();
                     self.print_choice_generic(i, config, handle)
                 }
             }
