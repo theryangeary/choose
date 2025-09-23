@@ -18,5 +18,4 @@ exclude = [
 [dependencies]
 structopt = "0.3"
 regex = "1"
-lazy_static = "1"
 backslash = "0"
