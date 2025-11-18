@@ -106,7 +106,8 @@ fn process_all_choices_for_line<W: WriteReceiver>(
     config: &Config,
     line: &str,
 ) -> Result<()> {
-    Ok(for choice in &config.opt.choices {
+    let _: () = for choice in &config.opt.choices {
         choice.print_choice(line, config, handle)?;
-    })
+    };
+    Ok(())
 }

@@ -117,8 +117,8 @@ impl Choice {
         T: Writeable,
         I: Iterator<Item = T>,
     {
-        let mut limited_iter = iter.take(max(max_items.saturating_add(1), 0).try_into().unwrap());
-        while let Some(s) = limited_iter.next() {
+        let limited_iter = iter.take(max(max_items.saturating_add(1), 0).try_into().unwrap());
+        for s in limited_iter {
             handle.write_choice_separable(s, config)?;
         };
 
