@@ -1,0 +1,76 @@
+.TH CHOOSE 1 "2026-06-11" "choose" "User Commands"
+.SH NAME
+choose \- human-friendly and fast alternative to cut and awk
+.SH SYNOPSIS
+.B choose
+[\fIFLAGS\fR] [\fIOPTIONS\fR] \fI<choices>...\fR
+.SH DESCRIPTION
+\fBchoose\fR is a terse field selection tool similar to Python's list slices. It is not meant to be a drop-in replacement for awk or cut, but rather a simple and intuitive tool to reach for when the basics of awk or cut will do, but the overhead of getting them to behave should not be necessary.
+.PP
+It features a simple syntax, negative indexing from the end of the line, zero-indexing, reverse ranges, and regular expression field separators using Rust's regex syntax.
+.SH OPTIONS
+.TP
+\fB\-c\fR, \fB\-\-character\-wise\fR
+Choose fields by character number.
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Activate debug mode.
+.TP
+\fB\-x\fR, \fB\-\-exclusive\fR
+Use exclusive ranges, similar to array indexing in many programming languages.
+.TP
+\fB\-n\fR, \fB\-\-non\-greedy\fR
+Use non-greedy field separators.
+.TP
+\fB\-f\fR, \fB\-\-field\-separator\fR \fI<field-separator>\fR
+Specify field separator other than whitespace, using Rust \fBregex\fR syntax.
+.TP
+\fB\-i\fR, \fB\-\-input\fR \fI<input>\fR
+Read from \fI<input>\fR file instead of standard input.
+.TP
+\fB\-o\fR, \fB\-\-output\-field\-separator\fR \fI<output-field-separator>\fR
+Specify output field separator.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Prints help information.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Prints version information.
+.SH ARGUMENTS
+.TP
+\fI<choices>...\fR
+Fields to print. Either \fBa\fR, \fBa:b\fR, \fBa..b\fR, or \fBa..=b\fR, where \fBa\fR and \fBb\fR are integers.
+.PP
+The beginning or end of a range can be omitted, resulting in including the beginning or end of the line, respectively. \fBa:b\fR is inclusive of \fBb\fR (unless overridden by \fB\-x\fR). \fBa..b\fR is exclusive of \fBb\fR and \fBa..=b\fR is inclusive of \fBb\fR.
+.SH EXAMPLES
+.TP
+\fBchoose 5\fR
+Print the 5th item from a line (zero indexed).
+.TP
+\fBchoose \-f ':' 0 3 5\fR
+Print the 0th, 3rd, and 5th item from a line, where items are separated by ':' instead of whitespace.
+.TP
+\fBchoose 2:5\fR
+Print everything from the 2nd to 5th item on the line, inclusive of the 5th.
+.TP
+\fBchoose \-x 2:5\fR
+Print everything from the 2nd to 5th item on the line, exclusive of the 5th.
+.TP
+\fBchoose :3\fR
+Print the beginning of the line to the 3rd item.
+.TP
+\fBchoose \-x :3\fR
+Print the beginning of the line to the 3rd item, exclusive.
+.TP
+\fBchoose 3:\fR
+Print the third item to the end of the line.
+.TP
+\fBchoose \-1\fR
+Print the last item from a line.
+.TP
+\fBchoose \-3:\-1\fR
+Print the last three items from a line.
+.SH AUTHOR
+Ryan Geary <rtgnj42@gmail.com>
+.PP
+This manual page was written by Ching He <heqing@rool.me> for the Debian project (and may be used by others).
